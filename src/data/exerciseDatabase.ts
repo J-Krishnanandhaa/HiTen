@@ -1,107 +1,162 @@
 import { Exercise } from '../types';
+import {
+  EXTRA_EXERCISES, PROGRESSION_LADDERS, COMMON_MISTAKES,
+  TIMED_EXERCISES, ASSISTED_EXERCISES, COMPOUND_EXERCISES,
+} from './extraExercises';
 
 /**
- * EXACT AUDITED VIDEO TIMESTAMPS FOR ALL 59 LIBRARY EXERCISES
- * Mapped to the 4 verified reference source videos:
- * 1. Thenx / Chris Heria (Bar Calisthenics & Band Overload): https://youtu.be/hQ2lHMP4kco
- * 2. Fitness My Life / Slovic (Tube Band Full Body Mastery): https://youtu.be/njGZClD94bg
- * 3. Tom Peto Training (20 Min Loop Band Follow-Along): https://youtu.be/sTueHjRCMaQ
- * 4. Rowan Row (45 Min Floor Calisthenics No Equipment): https://youtu.be/cDq-nFmD0rI
+ * VERIFIED VIDEO DEMONSTRATION CUES (audited 21 Nov 2026 against each video's
+ * official chapters and YouTube transcript).
+ *
+ * match:
+ *   'exact'   – the video shows this exact exercise at `start`
+ *   'close'   – same movement pattern, minor setup difference (anchor, grip, stance)
+ *   'variant' – a related variation; label says what is actually shown
+ * Exercises absent from all four videos have no entry and fall back to a
+ * targeted YouTube search instead of a wrong timestamp.
  */
-export const EXERCISE_YOUTUBE_TIMESTAMPS: Record<string, string> = {
-  // --- 1. THENX / CHRIS HERIA (Bar Calisthenics & Power Bands) ---
-  'chest-pushup-banded': 'https://youtu.be/hQ2lHMP4kco?t=45',        // 00:45 Banded Overload Push-Up
-  'banded-archer-pushup': 'https://youtu.be/hQ2lHMP4kco?t=90',       // 01:30 Banded Archer Push-Up
-  'bar-pullup-strict': 'https://youtu.be/hQ2lHMP4kco?t=135',          // 02:15 Strict Bodyweight Pull-Up
-  'bar-pullup-assisted': 'https://youtu.be/hQ2lHMP4kco?t=170',        // 02:50 Band-Assisted Pull-Up
-  'bar-chinup-strict': 'https://youtu.be/hQ2lHMP4kco?t=210',          // 03:30 Strict Chin-Up
-  'bar-chinup-assisted': 'https://youtu.be/hQ2lHMP4kco?t=250',        // 04:10 Band-Assisted Chin-Up
-  'bar-dead-hang': 'https://youtu.be/hQ2lHMP4kco?t=295',              // 04:55 Spine Decompression Hang
-  'bar-hanging-leg-raise': 'https://youtu.be/hQ2lHMP4kco?t=340',      // 05:40 Hanging Leg / Knee Raise
-  'chris-heria-deadlift': 'https://youtu.be/hQ2lHMP4kco?t=390',       // 06:30 Banded Heavy Deadlift
-  'bar-band-face-pull': 'https://youtu.be/hQ2lHMP4kco?t=435',         // 07:15 High Band Face Pull
-  'band-woodchopper-high-low': 'https://youtu.be/hQ2lHMP4kco?t=480',  // 08:00 High-to-Low Woodchopper
-  'standing-bicep-curl': 'https://youtu.be/hQ2lHMP4kco?t=525',        // 08:45 Standing Supinated Curl
+export const VIDEO_SOURCES = {
+  thenx: {
+    id: 'hQ2lHMP4kco',
+    title: '20 Best Exercises You Can Do With A Resistance Band',
+    channel: 'THENX (Chris Heria)',
+    lengthSec: 620,
+  },
+  fml: {
+    id: 'njGZClD94bg',
+    title: 'Full Body Workout With Resistance Bands | 8 Weeks Muscle Building Program | Session 7',
+    channel: 'Fitness My Life',
+    lengthSec: 443,
+  },
+  peto: {
+    id: 'sTueHjRCMaQ',
+    title: '20 Min FULL BODY RESISTANCE BAND WORKOUT | Follow Along',
+    channel: 'Tom Peto Training',
+    lengthSec: 1280,
+  },
+  rowan: {
+    id: 'cDq-nFmD0rI',
+    title: 'The Ultimate 45 Min FULL BODY WORKOUT',
+    channel: 'Rowan Row',
+    lengthSec: 2797,
+  },
+} as const;
 
-  // --- 2. FITNESS MY LIFE / SLOVIC (Complete Tube Band Full Body) ---
-  'bar-band-lat-pulldown': 'https://youtu.be/njGZClD94bg?t=76',       // 01:16 Lat Pull Down
-  'door-high-lat-pulldown': 'https://youtu.be/njGZClD94bg?t=76',      // 01:16 Door High Lat Pulldown
-  'bar-band-tricep-pushdown': 'https://youtu.be/njGZClD94bg?t=146',   // 02:26 Triceps Push Down
-  'tricep-pushdown-band': 'https://youtu.be/njGZClD94bg?t=146',       // 02:26 Door Tricep Pushdown
-  'chest-fly-middle': 'https://youtu.be/njGZClD94bg?t=236',           // 03:56 Mid-Chest Resistance Fly
-  'reverse-fly-band': 'https://youtu.be/njGZClD94bg?t=323',           // 05:23 Reverse Flys
-  'chest-press-standing': 'https://youtu.be/njGZClD94bg?t=423',       // 07:03 Standing Band Chest Press
-  'incline-chest-press': 'https://youtu.be/njGZClD94bg?t=423',        // 07:03 Incline Chest Press
-  'behind-back-bicep-curl': 'https://youtu.be/njGZClD94bg?t=505',     // 08:25 Behind-the-Back Bicep Curl
-  'tube-concentration-curl': 'https://youtu.be/njGZClD94bg?t=525',    // 08:45 Kneeling Concentration Curl
-  'bent-over-row-feet': 'https://youtu.be/njGZClD94bg?t=607',         // 10:07 Bent-Over Double Band Row
-  'kneeling-cable-crunch-band': 'https://youtu.be/njGZClD94bg?t=680', // 11:20 Kneeling Abdominal Crunch
-  'banded-squat-front': 'https://youtu.be/njGZClD94bg?t=788',         // 13:08 Front-Rack Squats
-  'overhead-shoulder-press': 'https://youtu.be/njGZClD94bg?t=854',    // 14:14 Overhead Shoulder Press
-  'lateral-deltoid-raise': 'https://youtu.be/njGZClD94bg?t=934',      // 15:34 Side Lateral Deltoid Raise
-  'reverse-bicep-curl-band': 'https://youtu.be/njGZClD94bg?t=1047',   // 17:27 Band Reverse Bicep Curl
-  'tube-calf-raise': 'https://youtu.be/njGZClD94bg?t=1110',           // 18:30 Standing Band Calf Raise
+export type VideoSourceKey = keyof typeof VIDEO_SOURCES;
+export type VideoMatch = 'exact' | 'close' | 'variant';
 
-  // --- 3. TOM PETO TRAINING (20 Min Loop Band Compound Movements) ---
-  'band-thruster': 'https://youtu.be/sTueHjRCMaQ?t=210',              // 03:30 Full Body Thrusters
-  'romanian-deadlift-band': 'https://youtu.be/sTueHjRCMaQ?t=285',     // 04:45 Romanian Deadlift (RDL)
-  'band-good-morning': 'https://youtu.be/sTueHjRCMaQ?t=375',          // 06:15 Banded Good Morning
-  'banded-lunges': 'https://youtu.be/sTueHjRCMaQ?t=465',              // 07:45 Band Reverse Lunge
-  'glute-bridge-loop': 'https://youtu.be/sTueHjRCMaQ?t=555',          // 09:15 Glute Bridge with Loop Band
-  'lateral-band-walk': 'https://youtu.be/sTueHjRCMaQ?t=645',          // 10:45 Lateral Band Monster Walk
-  'standing-glute-kickback': 'https://youtu.be/sTueHjRCMaQ?t=735',    // 12:15 Standing Glute Kickback
-  'single-arm-lat-row': 'https://youtu.be/sTueHjRCMaQ?t=825',         // 13:45 Single-Arm Staggered Lat Row
-  'seated-face-pull': 'https://youtu.be/sTueHjRCMaQ?t=915',           // 15:15 Mid-Anchor Face Pull
-  'front-raise-band': 'https://youtu.be/sTueHjRCMaQ?t=1005',          // 16:45 Front Delt Raise
-  'hammer-curl-band': 'https://youtu.be/sTueHjRCMaQ?t=1095',          // 18:15 Neutral Grip Hammer Curl
-  'overhead-tricep-extension': 'https://youtu.be/sTueHjRCMaQ?t=1185', // 19:45 Overhead Tricep Extension
-  'pallof-press-anti-rotation': 'https://youtu.be/sTueHjRCMaQ?t=1275',// 21:15 Pallof Press Anti-Rotation
+export interface ExerciseVideoCue {
+  source: VideoSourceKey;
+  start: number; // seconds
+  match: VideoMatch;
+  label: string; // what the video actually shows at `start`
+}
 
-  // --- 4. ROWAN ROW (45 Min Floor Bodyweight & Calisthenics) ---
-  'bodyweight-pushup-standard': 'https://youtu.be/cDq-nFmD0rI?t=60',  // 01:00 Standard Floor Push-Up
-  'bodyweight-diamond-pushup': 'https://youtu.be/cDq-nFmD0rI?t=160',  // 02:40 Diamond Push-Up
-  'bodyweight-pike-pushup': 'https://youtu.be/cDq-nFmD0rI?t=260',     // 04:20 Pike Push-Up
-  'bodyweight-pushup-downward-dog': 'https://youtu.be/cDq-nFmD0rI?t=360', // 06:00 Push-Up to Downward Dog
-  'bodyweight-archer-pushup': 'https://youtu.be/cDq-nFmD0rI?t=465',   // 07:45 Bodyweight Archer Push-Up
-  'bodyweight-superman-pulses': 'https://youtu.be/cDq-nFmD0rI?t=570', // 09:30 Superman Lat Pulses
-  'bodyweight-air-squat': 'https://youtu.be/cDq-nFmD0rI?t=675',       // 11:15 Tempo Bodyweight Squat
-  'bodyweight-sumo-squat-pulse': 'https://youtu.be/cDq-nFmD0rI?t=780',// 13:00 Sumo Squat Pulse
-  'bodyweight-reverse-lunge': 'https://youtu.be/cDq-nFmD0rI?t=885',   // 14:45 Alternating Reverse Lunge
-  'bodyweight-jump-squats': 'https://youtu.be/cDq-nFmD0rI?t=990',     // 16:30 Explosive Jump Squats
-  'bodyweight-glute-bridge': 'https://youtu.be/cDq-nFmD0rI?t=1095',   // 18:15 Glute Bridge & Squeeze
-  'bodyweight-standing-calf-raise': 'https://youtu.be/cDq-nFmD0rI?t=1200', // 20:00 Standing Calf Raise
-  'bodyweight-bicycle-crunches': 'https://youtu.be/cDq-nFmD0rI?t=1320', // 22:00 Bicycle Crunch
-  'bodyweight-v-ups': 'https://youtu.be/cDq-nFmD0rI?t=1425',          // 23:45 V-Up Jackknife
-  'bodyweight-mountain-climbers': 'https://youtu.be/cDq-nFmD0rI?t=1530', // 25:30 Cross-Body Mountain Climbers
-  'bodyweight-plank-shoulder-taps': 'https://youtu.be/cDq-nFmD0rI?t=1635', // 27:15 Plank Shoulder Taps
-  'bodyweight-full-burpees': 'https://youtu.be/cDq-nFmD0rI?t=1800',   // 30:00 Calisthenic Full Burpees
+export const EXERCISE_VIDEO_CUES: Record<string, ExerciseVideoCue> = {
+  // --- Pull / bar ---
+  'bar-pullup-assisted':        { source: 'thenx', start: 290,  match: 'exact',   label: 'Assisted Pull-Ups (band)' },
+  'bar-chinup-assisted':        { source: 'thenx', start: 290,  match: 'close',   label: 'Assisted Pull-Ups (overhand grip shown)' },
+  'bar-hanging-leg-raise':      { source: 'thenx', start: 342,  match: 'close',   label: 'Leg Raises (resistance band)' },
+  'bar-band-lat-pulldown':      { source: 'thenx', start: 333,  match: 'variant', label: 'Straight-Arm Lat Pulldown' },
+  'door-high-lat-pulldown':     { source: 'fml',   start: 351,  match: 'exact',   label: 'Lat Pull Down (high anchor)' },
+  'bent-over-row-feet':         { source: 'fml',   start: 382,  match: 'variant', label: 'Seated Rowing (low anchor)' },
+  'single-arm-lat-row':         { source: 'peto',  start: 92,   match: 'variant', label: 'Seated Band Row' },
+  'seated-face-pull':           { source: 'peto',  start: 141,  match: 'exact',   label: 'Seated Face Pull (band around feet)' },
+  'bar-band-face-pull':         { source: 'peto',  start: 141,  match: 'close',   label: 'Face Pull (seated, foot anchor)' },
+  'reverse-fly-band':           { source: 'peto',  start: 301,  match: 'close',   label: 'Band Pull-Apart' },
+
+  // --- Push ---
+  'chest-pushup-banded':        { source: 'thenx', start: 239,  match: 'exact',   label: 'Level 1 Push-Ups (band resisted)' },
+  'chest-fly-middle':           { source: 'fml',   start: 46,   match: 'exact',   label: 'Chest Flys (mid anchor)' },
+  'incline-chest-press':        { source: 'fml',   start: 85,   match: 'variant', label: 'Incline Chest Flys (low anchor)' },
+  'overhead-shoulder-press':    { source: 'fml',   start: 273,  match: 'exact',   label: 'Shoulder Press' },
+  'lateral-deltoid-raise':      { source: 'fml',   start: 297,  match: 'exact',   label: 'Side Lateral Raise' },
+  'front-raise-band':           { source: 'fml',   start: 325,  match: 'exact',   label: 'Front Raises' },
+  'tricep-pushdown-band':       { source: 'fml',   start: 160,  match: 'exact',   label: 'Triceps Push Down (high anchor)' },
+  'bar-band-tricep-pushdown':   { source: 'fml',   start: 160,  match: 'close',   label: 'Triceps Push Down (door anchor shown)' },
+  'overhead-tricep-extension':  { source: 'peto',  start: 582,  match: 'exact',   label: 'Overhead Tricep Extension' },
+
+  // --- Arms ---
+  'standing-bicep-curl':        { source: 'fml',   start: 203,  match: 'exact',   label: 'Biceps Curls' },
+  'tube-concentration-curl':    { source: 'fml',   start: 241,  match: 'variant', label: 'Preacher Curls' },
+  'hammer-curl-band':           { source: 'peto',  start: 471,  match: 'variant', label: 'Single-Arm Bicep Curl (supinated)' },
+
+  // --- Legs / hinge ---
+  'band-thruster':              { source: 'peto',  start: 34,   match: 'exact',   label: 'Thrusters (front-rack squat to press)' },
+  'banded-squat-front':         { source: 'fml',   start: 413,  match: 'close',   label: 'Squats & Lunges' },
+  'chris-heria-deadlift':       { source: 'thenx', start: 260,  match: 'exact',   label: 'Deadlift (resistance band)' },
+  'romanian-deadlift-band':     { source: 'peto',  start: 197,  match: 'close',   label: 'Band Deadlift / Hip Hinge' },
+  'banded-lunges':              { source: 'thenx', start: 390,  match: 'exact',   label: 'Reverse Lunges (resistance band)' },
+  'lateral-band-walk':          { source: 'peto',  start: 409,  match: 'close',   label: 'X-Band Lateral Walk' },
+  'tube-calf-raise':            { source: 'thenx', start: 371,  match: 'variant', label: 'Seated Calf Raise (band)' },
+  'band-good-morning':          { source: 'rowan', start: 300,  match: 'variant', label: 'Bodyweight Good Mornings (warm-up)' },
+  'standing-glute-kickback':    { source: 'rowan', start: 555,  match: 'variant', label: 'Glute Kickbacks (bodyweight)' },
+
+  // --- Bodyweight (Rowan Row) ---
+  'bodyweight-pushup-standard':     { source: 'rowan', start: 877,  match: 'close',   label: '5 Push-Ups into Downward Dog' },
+  'bodyweight-pushup-downward-dog': { source: 'rowan', start: 877,  match: 'exact',   label: 'Push-Ups into Downward Dog' },
+  'bodyweight-superman-pulses':     { source: 'rowan', start: 995,  match: 'exact',   label: 'Supermans' },
+  'bodyweight-plank-shoulder-taps': { source: 'rowan', start: 1118, match: 'exact',   label: 'Plank Shoulder Taps' },
+  'bodyweight-pike-pushup':         { source: 'rowan', start: 1178, match: 'exact',   label: 'Pike Push-Ups' },
+  'bodyweight-diamond-pushup':      { source: 'rowan', start: 1233, match: 'exact',   label: 'Diamond Push-Ups' },
+  'bodyweight-sumo-squat-pulse':    { source: 'rowan', start: 371,  match: 'close',   label: 'Sumo Squat' },
+  'bodyweight-reverse-lunge':       { source: 'rowan', start: 444,  match: 'exact',   label: 'Reverse Lunges' },
+  'bodyweight-air-squat':           { source: 'rowan', start: 502,  match: 'variant', label: 'Squat Pulses' },
+  'bodyweight-v-ups':               { source: 'rowan', start: 1378, match: 'exact',   label: 'V-Ups' },
+  'bodyweight-bicycle-crunches':    { source: 'rowan', start: 1500, match: 'exact',   label: 'Bicycle Kicks' },
+  'bodyweight-mountain-climbers':   { source: 'rowan', start: 2077, match: 'close',   label: 'Mountain Climbers' },
+  'bodyweight-jump-squats':         { source: 'rowan', start: 2139, match: 'exact',   label: 'Jump Squats' },
+  'bodyweight-full-burpees':        { source: 'rowan', start: 2250, match: 'exact',   label: 'Burpees' },
+
+  // --- Added exercises ---
+  'band-single-leg-rdl':            { source: 'thenx', start: 271,  match: 'exact',   label: 'Single-Leg Romanian Deadlift (band)' },
+  'bodyweight-side-lunge':          { source: 'rowan', start: 621,  match: 'exact',   label: 'Side Lunges' },
+  'band-upright-row':               { source: 'peto',  start: 253,  match: 'exact',   label: 'Upright Row' },
+  'band-pull-apart':                { source: 'peto',  start: 301,  match: 'exact',   label: 'Band Pull-Apart' },
+  'band-overhead-squat':            { source: 'peto',  start: 361,  match: 'exact',   label: 'Overhead Squat' },
+  'bar-band-assisted-dip':          { source: 'thenx', start: 218,  match: 'exact',   label: 'Straight Bar Dips (band assistance)' },
+  'band-tricep-kickback':           { source: 'fml',   start: 181,  match: 'exact',   label: 'Triceps Kickback (low anchor)' },
+  'bodyweight-leg-scissors':        { source: 'rowan', start: 1740, match: 'exact',   label: 'Leg Scissors' },
+  'bodyweight-long-arm-crunch':     { source: 'rowan', start: 1443, match: 'exact',   label: 'Long-Arm Crunches' },
+  'bodyweight-side-plank-rotation': { source: 'rowan', start: 1297, match: 'exact',   label: 'Side Plank Rotation' },
+  'bodyweight-plank-crunch':        { source: 'rowan', start: 2026, match: 'exact',   label: 'Plank Crunches' },
+  'bar-band-planche-lean':          { source: 'thenx', start: 437,  match: 'exact',   label: 'Assisted Planche Leans' },
+  'bar-band-front-lever-raise':     { source: 'thenx', start: 460,  match: 'exact',   label: 'Assisted Front Lever Raises' },
+  'bodyweight-single-leg-calf-raise': { source: 'thenx', start: 371, match: 'variant', label: 'Seated Calf Raise (band)' },
 };
 
+/** Back-compat: id → timestamped URL (only verified cues). */
+export const EXERCISE_YOUTUBE_TIMESTAMPS: Record<string, string> = Object.fromEntries(
+  Object.entries(EXERCISE_VIDEO_CUES).map(([id, c]) => [id, `https://youtu.be/${VIDEO_SOURCES[c.source].id}?t=${c.start}`])
+);
+
+export function getExerciseVideoCue(exerciseId: string): ExerciseVideoCue | undefined {
+  return EXERCISE_VIDEO_CUES[exerciseId];
+}
+
+export function getExerciseVideoSource(exerciseId: string) {
+  const cue = EXERCISE_VIDEO_CUES[exerciseId];
+  return cue ? VIDEO_SOURCES[cue.source] : undefined;
+}
+
 /**
- * Returns exact audited YouTube demonstration URL with fallback search protection
+ * Timestamped demo URL when a verified cue exists; otherwise a targeted
+ * YouTube search (never a bare, un-timestamped long video).
  */
 export function getExerciseYoutubeUrl(exerciseId: string, exerciseName?: string): string {
-  if (EXERCISE_YOUTUBE_TIMESTAMPS[exerciseId]) {
-    return EXERCISE_YOUTUBE_TIMESTAMPS[exerciseId];
-  }
+  const url = EXERCISE_YOUTUBE_TIMESTAMPS[exerciseId];
+  if (url) return url;
   const query = encodeURIComponent((exerciseName || exerciseId.replace(/-/g, ' ')) + ' exercise form tutorial');
   return `https://www.youtube.com/results?search_query=${query}`;
 }
 
-/**
- * Returns human-readable formatted timestamp string (e.g. "07:03", "14:14")
- */
+/** "MM:SS" label for verified cues, '' otherwise. */
 export function getExerciseTimestampLabel(exerciseId: string): string {
-  const url = EXERCISE_YOUTUBE_TIMESTAMPS[exerciseId];
-  if (!url) return '';
-  const match = url.match(/[?&]t=(\d+)/);
-  if (match) {
-    const totalSecs = parseInt(match[1], 10);
-    const mins = Math.floor(totalSecs / 60);
-    const secs = totalSecs % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return '';
+  const cue = EXERCISE_VIDEO_CUES[exerciseId];
+  if (!cue) return '';
+  const m = Math.floor(cue.start / 60);
+  const s = cue.start % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
 const RAW_EXERCISES: Exercise[] = [
@@ -985,8 +1040,7 @@ const RAW_EXERCISES: Exercise[] = [
   {
     id: 'tube-calf-raise',
     name: 'Standing Resistance Band Calf Raise',
-    targetMuscle: 'Quads',
-    secondaryMuscles: ['Forearms'],
+    targetMuscle: 'Calves',
     bandType: 'Long Loop Band',
     anchorPosition: 'Under Feet',
     difficulty: 'Beginner',
@@ -1614,8 +1668,7 @@ const RAW_EXERCISES: Exercise[] = [
   {
     id: 'bodyweight-standing-calf-raise',
     name: 'Floor Standing Calf Raise',
-    targetMuscle: 'Quads',
-    secondaryMuscles: ['Hamstrings'],
+    targetMuscle: 'Calves',
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
@@ -1759,11 +1812,33 @@ const RAW_EXERCISES: Exercise[] = [
   },
 ];
 
-export const EXERCISE_DATABASE: Exercise[] = RAW_EXERCISES.map(e => ({
+const LADDER_NEIGHBOURS: Record<string, { easierId?: string; harderId?: string }> = {};
+for (const ladder of PROGRESSION_LADDERS) {
+  ladder.forEach((id, i) => {
+    const entry = (LADDER_NEIGHBOURS[id] ||= {});
+    if (i > 0 && !entry.easierId) entry.easierId = ladder[i - 1];
+    if (i < ladder.length - 1 && !entry.harderId) entry.harderId = ladder[i + 1];
+  });
+}
+
+export const EXERCISE_DATABASE: Exercise[] = [...RAW_EXERCISES, ...EXTRA_EXERCISES].map(e => ({
   ...e,
-  youtubeUrl: EXERCISE_YOUTUBE_TIMESTAMPS[e.id] || e.youtubeUrl || 'https://youtu.be/njGZClD94bg',
+  // One source of truth for demo links: verified cue or a targeted search.
+  youtubeUrl: getExerciseYoutubeUrl(e.id, e.name),
+  sourceVideo: undefined,
+  isTimed: e.isTimed || TIMED_EXERCISES.has(e.id),
+  isAssisted: e.isAssisted || ASSISTED_EXERCISES.has(e.id),
+  isCompound: e.isCompound || COMPOUND_EXERCISES.has(e.id),
+  commonMistakes: e.commonMistakes || COMMON_MISTAKES[e.id],
+  easierId: e.easierId || LADDER_NEIGHBOURS[e.id]?.easierId,
+  harderId: e.harderId || LADDER_NEIGHBOURS[e.id]?.harderId,
 }));
 
+const EXERCISE_BY_ID = new Map(EXERCISE_DATABASE.map(e => [e.id, e]));
+
+export function getExerciseById(id: string): Exercise | undefined {
+  return EXERCISE_BY_ID.get(id);
+}
 
 export function isExerciseAvailable(
   exercise: Exercise,

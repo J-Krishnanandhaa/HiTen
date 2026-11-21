@@ -998,7 +998,7 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
   animationType,
   anchorPosition = 'Under Feet',
   exerciseName = '',
-  bandColorHex = '#2979FF',
+  bandColorHex = '#6EA8FF',
   size = 'md',
   isPaused = false,
 }) => {
@@ -1010,7 +1010,7 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
   }[size];
 
   // Guaranteed Electric Blue for resistance bands to satisfy user specification
-  const blueBandColor = '#2979FF';
+  const blueBandColor = '#6EA8FF';
 
   // Resolve best animation fallback based on name or anchor if undefined
   const resolvedAnim: WorkoutAvatarAnimation = animationType || (() => {
@@ -1114,7 +1114,7 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
   });
 
   return (
-    <div className={`relative ${sizeClasses} mx-auto flex items-center justify-center select-none overflow-hidden rounded-3xl bg-[#12161A]/80 border border-[#242C35]/60 shadow-inner`}>
+    <div className={`relative ${sizeClasses} mx-auto flex items-center justify-center overflow-hidden rounded-3xl bg-[#12161A]/80 border border-[#242C35]/60 shadow-inner`}>
       {/* Background Soft Glow matching the active resistance band */}
       <div
         className="absolute inset-4 rounded-full opacity-20 blur-2xl transition-colors duration-700 pointer-events-none"

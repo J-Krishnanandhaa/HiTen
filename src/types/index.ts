@@ -94,6 +94,9 @@ export interface ResistanceBand {
   weightKg: number;
   type: BandType;
   isActive: boolean;
+  /** Lower end of the manufacturer's printed range (bands are rated as a range). */
+  minKg?: number;
+  minLbs?: number;
   brand?: 'Slovic' | 'Standard' | 'Custom';
 }
 
@@ -119,6 +122,16 @@ export interface Exercise {
     channel: string;
     youtubeUrl: string;
   };
+  /** Target is held for seconds (targetReps is read as seconds). */
+  isTimed?: boolean;
+  /** The band reduces load (assisted pull-ups/dips): a lighter band is progress. */
+  isAssisted?: boolean;
+  /** Multi-joint lift that gets longer rest between rounds. */
+  isCompound?: boolean;
+  commonMistakes?: string[];
+  /** Calisthenics progression ladder neighbours. */
+  easierId?: string;
+  harderId?: string;
 }
 
 export interface RoutineExercise {
@@ -145,9 +158,16 @@ export interface LoggedSet {
   setNumber: number;
   reps: number;
   bandIds: string[]; // Supports stacked bands
+  /** Always stored in lbs (canonical), whatever the display unit. Band load only, never assistance. */
   totalResistanceLbs: number;
+  /** Band assistance in lbs for assisted exercises (not counted as volume). */
+  assistanceLbs?: number;
   completed: boolean;
-  rpe?: number; // 1-10
+  rpe?: number; // 1-10 (legacy)
+  /** Reps left in the tank after the set: 0 = failure, 2 = one or two left, 3 = three or more. */
+  rir?: 0 | 2 | 3;
+  /** Seconds held, for timed exercises. */
+  seconds?: number;
 }
 
 export interface LoggedExercise {
@@ -166,6 +186,8 @@ export interface WorkoutSessionLog {
   exercises: LoggedExercise[];
   totalVolumeLbs: number;
   notes?: string;
+  /** True when the user ended the workout early and saved what they did. */
+  partial?: boolean;
 }
 
 export interface FoodItem {
@@ -223,4 +245,9 @@ export interface UserProfile {
   hasResistanceBands?: boolean;
   hasPullUpBar?: boolean;
   targetWorkoutDurationMins?: number; // default: 20 mins
+  /** Planned training sessions per week; the streak counts weeks that hit it. */
+  weeklyGoal?: number;
+  experience?: 'beginner' | 'intermediate' | 'advanced';
+  /** First-run setup completed. */
+  onboarded?: boolean;
 }

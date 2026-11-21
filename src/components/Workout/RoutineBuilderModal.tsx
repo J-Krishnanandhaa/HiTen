@@ -85,33 +85,33 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-md bg-[#12161A] border border-[#242C35] rounded-3xl p-5 shadow-2xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between pb-3 border-b border-[#242C35]">
+      <div className="relative w-full max-w-md bg-hy-bg border border-hy-elevated rounded-3xl p-5 shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between pb-3 border-b border-hy-elevated">
           <h3 className="text-base font-bold text-white">Create Custom Routine</h3>
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-white">
+          <button aria-label="Close" onClick={onClose} className="p-1 rounded-lg text-hy-text-2 hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="py-3 space-y-3 overflow-y-auto flex-1 pr-1">
           <div>
-            <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Routine Name</label>
+            <label className="text-xs uppercase font-bold text-hy-text-2 block mb-1">Routine Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Upper Body Blast"
-              className="w-full px-3 py-2 bg-[#1A2026] border border-[#242C35] rounded-xl text-white text-xs font-bold focus:border-[#2979FF] outline-none"
+              className="w-full px-3 py-2 bg-hy-surface border border-hy-elevated rounded-xl text-white text-xs font-bold focus:border-hy-primary outline-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Level</label>
+              <label className="text-xs uppercase font-bold text-hy-text-2 block mb-1">Level</label>
               <select
                 value={level}
                 onChange={(e) => setLevel(e.target.value as Routine['level'])}
-                className="w-full px-2.5 py-1.5 bg-[#1A2026] border border-[#242C35] rounded-xl text-xs text-white"
+                className="w-full px-2.5 py-1.5 bg-hy-surface border border-hy-elevated rounded-xl text-xs text-white"
               >
                 <option value="Beginner">Beginner</option>
                 <option value="Intermediate">Intermediate</option>
@@ -119,13 +119,13 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Description</label>
+              <label className="text-xs uppercase font-bold text-hy-text-2 block mb-1">Description</label>
               <input
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief focus note"
-                className="w-full px-2.5 py-1.5 bg-[#1A2026] border border-[#242C35] rounded-xl text-xs text-white"
+                className="w-full px-2.5 py-1.5 bg-hy-surface border border-hy-elevated rounded-xl text-xs text-white"
               />
             </div>
           </div>
@@ -133,13 +133,13 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
           {/* Exercises */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase font-bold text-slate-400">
+              <span className="text-xs uppercase font-bold text-hy-text-2">
                 Exercises ({exercises.length})
               </span>
               <button
                 type="button"
                 onClick={() => setShowAddDrawer(true)}
-                className="px-2 py-0.5 rounded-lg bg-[#2979FF] text-white text-[10px] font-bold flex items-center gap-1"
+                className="px-2 py-0.5 rounded-lg bg-hy-primary text-hy-on-primary text-xs font-bold flex items-center gap-1"
               >
                 <Plus className="w-3 h-3" /> Add
               </button>
@@ -149,12 +149,12 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
               {exercises.map((re, index) => {
                 const ex = EXERCISE_DATABASE.find(e => e.id === re.exerciseId);
                 return (
-                  <div key={index} className="p-2.5 rounded-xl bg-[#1A2026] border border-[#242C35] text-xs">
+                  <div key={index} className="p-2.5 rounded-xl bg-hy-surface border border-hy-elevated text-xs">
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="font-bold text-white line-clamp-1">{ex?.name || 'Exercise'}</span>
                       <button
                         onClick={() => handleRemoveExercise(index)}
-                        className="text-slate-500 hover:text-red-400"
+                        className="text-hy-text-3 hover:text-red-400"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -162,7 +162,7 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
 
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <span className="text-[9px] text-slate-500 uppercase block">Sets</span>
+                        <span className="text-xs text-hy-text-3 uppercase block">Sets</span>
                         <input
                           type="number"
                           value={re.sets === undefined || re.sets === null ? '' : re.sets}
@@ -175,11 +175,11 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
                               handleUpdate(index, 'sets', 3);
                             }
                           }}
-                          className="w-full bg-[#12161A] border border-[#2D3748] rounded px-1.5 py-0.5 text-center font-bold text-white text-xs"
+                          className="w-full bg-hy-bg border border-hy-border rounded px-1.5 py-0.5 text-center font-bold text-white text-xs"
                         />
                       </div>
                       <div>
-                        <span className="text-[9px] text-slate-500 uppercase block">Reps</span>
+                        <span className="text-xs text-hy-text-3 uppercase block">Reps</span>
                         <input
                           type="number"
                           value={re.targetReps === undefined || re.targetReps === null ? '' : re.targetReps}
@@ -192,11 +192,11 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
                               handleUpdate(index, 'targetReps', 10);
                             }
                           }}
-                          className="w-full bg-[#12161A] border border-[#2D3748] rounded px-1.5 py-0.5 text-center font-bold text-white text-xs"
+                          className="w-full bg-hy-bg border border-hy-border rounded px-1.5 py-0.5 text-center font-bold text-white text-xs"
                         />
                       </div>
                       <div>
-                        <span className="text-[9px] text-slate-500 uppercase block">Rest (s)</span>
+                        <span className="text-xs text-hy-text-3 uppercase block">Rest (s)</span>
                         <input
                           type="number"
                           value={re.targetRestSeconds === undefined || re.targetRestSeconds === null ? '' : re.targetRestSeconds}
@@ -209,7 +209,7 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
                               handleUpdate(index, 'targetRestSeconds', 30);
                             }
                           }}
-                          className="w-full bg-[#12161A] border border-[#2D3748] rounded px-1.5 py-0.5 text-center font-bold text-white text-xs"
+                          className="w-full bg-hy-bg border border-hy-border rounded px-1.5 py-0.5 text-center font-bold text-white text-xs"
                         />
                       </div>
                     </div>
@@ -222,10 +222,10 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
 
         {/* Drawer for selecting exercise */}
         {showAddDrawer && (
-          <div className="absolute inset-0 bg-[#12161A] rounded-3xl p-4 flex flex-col z-20 animate-fadeIn">
-            <div className="flex items-center justify-between pb-2 border-b border-[#242C35]">
+          <div className="absolute inset-0 bg-hy-bg rounded-3xl p-4 flex flex-col z-20 animate-fadeIn">
+            <div className="flex items-center justify-between pb-2 border-b border-hy-elevated">
               <span className="text-xs font-bold text-white">Select Exercise</span>
-              <button onClick={() => setShowAddDrawer(false)} className="text-slate-400">
+              <button aria-label="Close" onClick={() => setShowAddDrawer(false)} className="text-hy-text-2">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -234,8 +234,8 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
                 <button
                   key={m}
                   onClick={() => setSelectedMuscleFilter(m)}
-                  className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full ${
-                    selectedMuscleFilter === m ? 'bg-[#2979FF] text-white' : 'bg-[#1A2026] text-slate-400'
+                  className={`px-2.5 py-0.5 text-xs font-bold rounded-full ${
+                    selectedMuscleFilter === m ? 'bg-hy-primary text-hy-on-primary' : 'bg-hy-surface text-hy-text-2'
                   }`}
                 >
                   {m}
@@ -247,23 +247,23 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
                 <button
                   key={ex.id}
                   onClick={() => handleAddExercise(ex.id)}
-                  className="w-full text-left p-2.5 rounded-xl bg-[#1A2026] hover:bg-[#242C35] flex items-center justify-between text-xs"
+                  className="w-full text-left p-2.5 rounded-xl bg-hy-surface hover:bg-hy-elevated flex items-center justify-between text-xs"
                 >
                   <span className="font-bold text-white">{ex.name}</span>
-                  <Plus className="w-3.5 h-3.5 text-[#2979FF]" />
+                  <Plus className="w-3.5 h-3.5 text-hy-primary" />
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        <div className="pt-3 border-t border-[#242C35] flex justify-end gap-2">
-          <button onClick={onClose} className="px-3 py-2 text-xs text-slate-400 font-bold">
+        <div className="pt-3 border-t border-hy-elevated flex justify-end gap-2">
+          <button onClick={onClose} className="px-3 py-2 text-xs text-hy-text-2 font-bold">
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 rounded-xl bg-[#2979FF] text-white text-xs font-bold shadow-md shadow-[#2979FF]/30 flex items-center gap-1"
+            className="px-5 py-2 rounded-xl bg-hy-primary text-hy-on-primary text-xs font-bold shadow-md shadow-hy-primary/30 flex items-center gap-1"
           >
             <Check className="w-3.5 h-3.5" />
             <span>Save</span>

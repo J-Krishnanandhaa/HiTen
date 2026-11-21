@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  loadUserProfile, saveUserProfile, 
-  loadRoutines, saveRoutines, 
-  loadWorkoutLogs
+import {
+  loadUserProfile, saveUserProfile,
+  loadRoutines, saveRoutines,
+  loadWorkoutLogs, migrateStorage,
 } from './utils/storage';
+import { computeWeeklyStreak } from './utils/streak';
+import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
 import { UserProfile, Routine, WorkoutSessionLog } from './types';
 import { Navbar, ActiveTab } from './components/Navbar';
 import { WorkoutHub } from './components/Workout/WorkoutHub';
@@ -11,6 +13,9 @@ import { WorkoutPlayer } from './components/Workout/WorkoutPlayer';
 import { ExerciseLibraryView } from './components/ExerciseLibrary/ExerciseLibraryView';
 import { HistoryView } from './components/History/HistoryView';
 import { ProfileAndBandsModal } from './components/Settings/ProfileAndBandsModal';
+
+// Move v1 (bandfit_*) data to v2 before anything is read.
+migrateStorage();
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('training');
@@ -53,14 +58,14 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#12161A] text-white flex flex-col selection:bg-[#2979FF] selection:text-white">
+    <div className="min-h-screen bg-hy-bg text-hy-text flex flex-col">
       {/* Navigation Bars */}
       <Navbar
         activeTab={activeTab}
         onTabChange={(tab) => setActiveTab(tab)}
         isWorkoutActive={!!activeWorkoutRoutine}
         onOpenActiveWorkout={() => {}}
-        streakDays={userProfile.streakDays || 0}
+        streakWeeks={computeWeeklyStreak(workoutLogs, userProfile.weeklyGoal || 4).weeks}
       />
 
       {/* Main Content Area */}
@@ -103,11 +108,17 @@ export const App: React.FC = () => {
         )}
       </main>
 
+      {/* First-run setup */}
+      {!userProfile.onboarded && (
+        <OnboardingFlow profile={userProfile} onComplete={handleUpdateProfile} />
+      )}
+
       {/* Fullscreen Interactive Workout Player */}
       {activeWorkoutRoutine && (
         <WorkoutPlayer
           routine={activeWorkoutRoutine}
           userProfile={userProfile}
+          workoutLogs={workoutLogs}
           onExit={() => setActiveWorkoutRoutine(null)}
           onFinished={handleWorkoutFinished}
         />

@@ -1,7 +1,8 @@
 import { ResistanceBand } from '../types';
 
 // SLOVIC PULL-UP & LOOP RESISTANCE BANDS (Natural Latex Loop Bands)
-// Specifically calibrated to Slovic's official weight ranges in kg and lbs
+// Slovic's printed ranges. weightKg/weightLbs is the top of the range; minKg/minLbs the bottom.
+// Real tension depends on stretch, so loads are shown as "rated" and computed from the midpoint.
 export const SLOVIC_LOOP_BANDS: ResistanceBand[] = [
   {
     id: 'slovic-loop-yellow',
@@ -9,6 +10,8 @@ export const SLOVIC_LOOP_BANDS: ResistanceBand[] = [
     colorHex: '#eab308',
     weightLbs: 15,
     weightKg: 7,
+    minKg: 3,
+    minLbs: 7,
     type: 'Long Loop Band',
     isActive: true,
     brand: 'Slovic',
@@ -19,6 +22,8 @@ export const SLOVIC_LOOP_BANDS: ResistanceBand[] = [
     colorHex: '#ef4444',
     weightLbs: 33,
     weightKg: 15,
+    minKg: 7,
+    minLbs: 15,
     type: 'Long Loop Band',
     isActive: true,
     brand: 'Slovic',
@@ -29,6 +34,8 @@ export const SLOVIC_LOOP_BANDS: ResistanceBand[] = [
     colorHex: '#3b82f6',
     weightLbs: 66,
     weightKg: 30,
+    minKg: 15,
+    minLbs: 33,
     type: 'Long Loop Band',
     isActive: true,
     brand: 'Slovic',
@@ -39,6 +46,8 @@ export const SLOVIC_LOOP_BANDS: ResistanceBand[] = [
     colorHex: '#a855f7',
     weightLbs: 99,
     weightKg: 45,
+    minKg: 30,
+    minLbs: 66,
     type: 'Long Loop Band',
     isActive: true,
     brand: 'Slovic',
@@ -49,6 +58,8 @@ export const SLOVIC_LOOP_BANDS: ResistanceBand[] = [
     colorHex: '#f97316',
     weightLbs: 132,
     weightKg: 60,
+    minKg: 45,
+    minLbs: 99,
     type: 'Long Loop Band',
     isActive: true,
     brand: 'Slovic',

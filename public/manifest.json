@@ -1,6 +1,6 @@
 {
-  "short_name": "BandFit Pro",
-  "name": "BandFit Pro - Resistance Bands & Fitness Tracker",
+  "short_name": "HyTen",
+  "name": "HyTen: Hybrid Tension Training",
   "icons": [
     {
       "src": "/icon.svg",
@@ -9,8 +9,8 @@
     }
   ],
   "start_url": "/",
-  "background_color": "#090d16",
-  "theme_color": "#090d16",
+  "background_color": "#0F1318",
+  "theme_color": "#0F1318",
   "display": "standalone",
   "orientation": "portrait"
 }

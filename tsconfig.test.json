@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020", "DOM"],
+    "strict": true,
+    "skipLibCheck": true,
+    "types": [],
+    "outDir": ".test-build",
+    "rootDir": "."
+  },
+  "files": [
+    "src/utils/sessionQueue.ts",
+    "src/utils/progression.ts",
+    "src/utils/streak.ts",
+    "src/utils/bands.ts",
+    "src/utils/stats.ts",
+    "src/utils/nutritionMath.ts",
+    "src/utils/routineScaler.ts",
+    "src/utils/equipmentManager.ts",
+    "src/utils/storage.ts",
+    "src/data/prebuiltWorkouts.ts",
+    "src/data/exerciseDatabase.ts"
+  ]
+}
