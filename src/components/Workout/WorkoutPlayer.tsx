@@ -295,6 +295,11 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
   };
 
   const finish = (logs: LoggedExercise[], partial: boolean) => {
+    // Nothing done: leave without saving an empty workout.
+    if (!logs.some(l => l.sets.some(s => s.completed))) {
+      onExit();
+      return;
+    }
     sound.playWorkoutComplete();
     const durationSeconds = Math.max(60, elapsedSeconds);
     const doneLogs = partial

@@ -18,11 +18,12 @@ export function bandLoadKg(band: ResistanceBand): number {
   return min !== undefined ? (min + band.weightKg) / 2 : band.weightKg;
 }
 
+/** Representative load in lbs. Bands rated in kg convert from kg so both units agree. */
 export function bandLoadLbs(band: ResistanceBand): number {
-  const minLbs = band.minLbs ?? (band.minKg !== undefined ? band.minKg * KG_TO_LBS : undefined);
-  if (minLbs !== undefined) return (minLbs + band.weightLbs) / 2;
-  const min = parsedMinKg(band);
-  return min !== undefined ? ((min + band.weightKg) / 2) * KG_TO_LBS : band.weightLbs;
+  const minKg = band.minKg ?? parsedMinKg(band);
+  if (minKg !== undefined) return ((minKg + band.weightKg) / 2) * KG_TO_LBS;
+  if (band.minLbs !== undefined) return (band.minLbs + band.weightLbs) / 2;
+  return band.weightLbs;
 }
 
 /** Total stacked load of the selected bands, in canonical lbs. */
