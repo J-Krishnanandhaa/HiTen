@@ -13,9 +13,11 @@ import { WorkoutPlayer } from './components/Workout/WorkoutPlayer';
 import { ExerciseLibraryView } from './components/ExerciseLibrary/ExerciseLibraryView';
 import { HistoryView } from './components/History/HistoryView';
 import { ProfileAndBandsModal } from './components/Settings/ProfileAndBandsModal';
+import { initTheme } from './utils/theme';
 
 // Move v1 (bandfit_*) data to v2 before anything is read.
 migrateStorage();
+initTheme();
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('training');
