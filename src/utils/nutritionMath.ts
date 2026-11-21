@@ -1,25 +1,40 @@
 import { UserProfile, WorkoutSessionLog } from '../types';
 
 /**
- * MET-based workout calorie expenditure estimator calibrated for resistance bands,
- * calisthenics, and bodyweight circuit training.
- * 
- * Standard METs:
- * - Low intensity (mobility, light stretching, warm-up): 3.8
- * - Moderate intensity (resistance bands, calisthenics, progressive overload): 6.0
- * - High intensity (HIIT, supersets, metabolic conditioning): 7.5
- * 
- * Formula: Calories = MET * weightKg * (durationMinutes / 60)
+ * MET values from the 2024 Adult Compendium of Physical Activities.
+ *  - 02035  5.0  Circuit training, moderate effort   → band/bar supersets with short rests
+ *  - 02032  6.0  Circuit training, body weight       → full-body flows and challenges
+ *  - 02030  3.5  Calisthenics, light/moderate (core) → core and mobility sessions
+ *  - 02054  3.5  Resistance training, 8–15 reps      → straight sets with longer rests
+ * The result is an estimate: shown as "est." in the UI.
  */
+export type SessionIntensity = 'core' | 'strength' | 'circuit' | 'conditioning';
+
+export const SESSION_MET: Record<SessionIntensity, number> = {
+  core: 3.5,
+  strength: 5.0,
+  circuit: 6.0,
+  conditioning: 8.0,
+};
+
+/** Pick the session's intensity class from its routine category. */
+export function sessionIntensityFor(category?: string): SessionIntensity {
+  const c = (category || '').toLowerCase();
+  if (c.includes('core')) return 'core';
+  if (c.includes('full body') || c.includes('7x4') || c.includes('challenge')) return 'circuit';
+  if (c.includes('hiit') || c.includes('conditioning')) return 'conditioning';
+  return 'strength';
+}
+
+/** Calories = MET × body weight (kg) × hours. */
 export function estimateWorkoutCalories(
-  durationMinutes: number, 
-  userWeightKg: number, 
-  intensity: 'low' | 'moderate' | 'high' = 'moderate'
+  durationMinutes: number,
+  userWeightKg: number,
+  intensity: SessionIntensity = 'strength'
 ): number {
   const safeWeight = userWeightKg > 0 ? userWeightKg : 70;
   const safeMinutes = Math.max(0.1, durationMinutes);
-  const met = intensity === 'low' ? 3.8 : intensity === 'moderate' ? 6.0 : 7.5;
-  return Math.max(1, Math.round(met * safeWeight * (safeMinutes / 60)));
+  return Math.max(1, Math.round(SESSION_MET[intensity] * safeWeight * (safeMinutes / 60)));
 }
 
 /**
