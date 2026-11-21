@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, ChevronRight, X, Shield, Check, ExternalLink } from 'lucide-react';
 import { Exercise } from '../../types';
-import { EXERCISE_DATABASE, getExerciseYoutubeUrl, getExerciseTimestampLabel } from '../../data/exerciseDatabase';
+import { EXERCISE_DATABASE, getExerciseYoutubeUrl, getExerciseTimestampLabel, getExerciseVideoCue, getExerciseVideoSource } from '../../data/exerciseDatabase';
 import { WorkoutAvatar } from '../Common/WorkoutAvatar';
 import { YoutubeIcon } from '../Common/YoutubeIcon';
 
@@ -160,7 +160,7 @@ export const ExerciseLibraryView: React.FC = () => {
                     {ex.name}
                   </h4>
                   <a
-                    href={ex.youtubeUrl || getExerciseYoutubeUrl(ex.id, ex.name)}
+                    href={getExerciseYoutubeUrl(ex.id, ex.name)}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
@@ -224,7 +224,7 @@ export const ExerciseLibraryView: React.FC = () => {
 
                 {/* Exact Video Timestamp Link */}
                 <a
-                  href={selectedExercise.youtubeUrl || getExerciseYoutubeUrl(selectedExercise.id, selectedExercise.name)}
+                  href={getExerciseYoutubeUrl(selectedExercise.id, selectedExercise.name)}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center justify-between p-3 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/15 transition-all text-xs font-bold"
@@ -233,7 +233,7 @@ export const ExerciseLibraryView: React.FC = () => {
                     <YoutubeIcon className="w-5 h-5 fill-current text-red-500 shrink-0" />
                     <div>
                       <div className="text-[10px] uppercase text-red-400/80 font-black flex items-center gap-2">
-                        <span>{selectedExercise.sourceVideo?.channel ? `${selectedExercise.sourceVideo.channel} • Video Demo` : 'Video Form Demonstration'}</span>
+                        <span>{getExerciseVideoSource(selectedExercise.id) ? `${getExerciseVideoSource(selectedExercise.id)!.channel} • Video Demo` : 'Search YouTube for a demo'}</span>
                         {getExerciseTimestampLabel(selectedExercise.id) && (
                           <span className="px-1.5 py-0.2 rounded bg-red-500 text-white font-mono text-[9px]">
                             {getExerciseTimestampLabel(selectedExercise.id)}
@@ -241,7 +241,9 @@ export const ExerciseLibraryView: React.FC = () => {
                         )}
                       </div>
                       <div className="text-white text-xs truncate max-w-[200px]">
-                        {selectedExercise.sourceVideo?.title || 'Watch Exercise on YouTube'}
+                        {getExerciseVideoCue(selectedExercise.id)
+                          ? `${getExerciseVideoCue(selectedExercise.id)!.match === 'exact' ? '' : 'Similar: '}${getExerciseVideoCue(selectedExercise.id)!.label}`
+                          : 'No verified clip yet: opens a YouTube search'}
                       </div>
                     </div>
                   </div>

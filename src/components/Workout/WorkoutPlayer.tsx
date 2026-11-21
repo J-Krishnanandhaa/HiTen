@@ -459,7 +459,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({
                 </div>
 
                 <a
-                  href={currentExercise.youtubeUrl || getExerciseYoutubeUrl(currentExercise.id, currentExercise.name)}
+                  href={getExerciseYoutubeUrl(currentExercise.id, currentExercise.name)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-2.5 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-500 hover:text-red-400 transition-all shrink-0 flex items-center gap-1.5 text-xs font-bold group/yt"
@@ -524,7 +524,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({
                   </div>
 
                   <a
-                    href={nextExercise.youtubeUrl || getExerciseYoutubeUrl(nextExercise.id)}
+                    href={getExerciseYoutubeUrl(nextExercise.id, nextExercise.name)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-500 hover:text-red-400 transition-all shrink-0 flex items-center justify-center self-center"
@@ -679,7 +679,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({
                     {currentExercise.name}
                   </h2>
                   <a
-                    href={currentExercise.youtubeUrl || getExerciseYoutubeUrl(currentExercise.id, currentExercise.name)}
+                    href={getExerciseYoutubeUrl(currentExercise.id, currentExercise.name)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-2 py-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-500 hover:text-red-400 transition-all flex items-center gap-1 shrink-0 text-xs font-bold"

@@ -607,7 +607,7 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
                 <div className="flex items-center gap-1.5 shrink-0">
                   {/* Small YouTube Symbol for exact form demonstration */}
                   <a
-                    href={ex?.youtubeUrl || getExerciseYoutubeUrl(ex?.id || '', ex?.name)}
+                    href={getExerciseYoutubeUrl(ex?.id || '', ex?.name)}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
@@ -651,7 +651,7 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
                 <div className="flex items-center gap-2 min-w-0">
                   <h3 className="text-base sm:text-lg font-bold text-white truncate">{inspectingExercise.name}</h3>
                   <a
-                    href={inspectingExercise.youtubeUrl || getExerciseYoutubeUrl(inspectingExercise.id, inspectingExercise.name)}
+                    href={getExerciseYoutubeUrl(inspectingExercise.id, inspectingExercise.name)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-2 py-1 rounded-lg bg-red-500/15 border border-red-500/30 text-red-500 hover:text-red-400 shrink-0 flex items-center gap-1 text-xs font-bold"
