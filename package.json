@@ -1,12 +1,14 @@
 {
-  "name": "resistance-bands-workout-app",
+  "name": "hyten",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/run-tests.cjs"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "^8.0.2",
@@ -28,5 +30,6 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "vite": "^6.0.7"
-  }
+  },
+  "description": "HyTen: offline progressive-overload training for resistance bands, a pull-up bar and bodyweight."
 }

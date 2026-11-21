@@ -1,183 +1,122 @@
-# HyTen 🏋️‍♂️⚡
-> **Hybrid Tension Progressive Overload Fitness Platform**  
-> Specifically engineered for Resistance Bands, Calisthenics & Bodyweight Progressive Overload.
+# HyTen
 
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Capacitor](https://img.shields.io/badge/Capacitor-8.6-119EFF?logo=capacitor&logoColor=white)](https://capacitorjs.com/)
-[![Android APK](https://img.shields.io/badge/Android-5.26MB_APK-3DDC84?logo=android&logoColor=white)](./HyTen.apk)
+**Hybrid Tension training: progressive overload for resistance bands, a pull-up bar and bodyweight.**
+
+HyTen is an offline-first workout app for people who train at home with loop bands, a doorway pull-up bar, or nothing at all. It plans the week, runs each session set by set, remembers what you did last time, and tells you when to step up a band.
+
+React 18 · TypeScript · Vite · Tailwind CSS · Capacitor (Android)
 
 ---
 
-## 💡 Why HyTen?
+## What it does
 
-Most mainstream fitness and home workout apps assume one of two extremes:
-1. **Zero equipment apps**: Rely purely on high-rep calisthenics with no meaningful path for progressive overload.
-2. **Gym-focused apps**: Assume heavy barbells, cable stacks, and dumbbells, failing to understand elastic variable resistance curves.
+### Plans that fit your gear
+- **Four equipment modes:** bands + bar, bands only, bar only, or no equipment. Turning gear on or off swaps every exercise for a compatible one.
+- **Three weekly splits:**
 
-**HyTen** (*Hybrid Tension*) bridges this gap. It is built from the ground up for trainees utilizing **resistance bands (loop bands, tube bands with door anchors) and bodyweight leverage (pull-up bars, floor calisthenics)**. It models the escalating tension curve of elastic resistance, supports stacked bands, and tracks workout volume, sets, and calorie expenditure in an intuitive, offline-first mobile app.
+  | Split | Days |
+  | --- | --- |
+  | 4-day | Push, Pull, Legs, Full Body (+ optional Core) |
+  | 5-day | Push, Pull, Legs, Upper (push/pull supersets), Lower & Core |
+  | 6-day | Push A, Pull A, Legs A, Push B, Pull B, Legs B + Core |
 
----
+- **Light / Standard / Hard** versions of every day, and a **duration scaler** from 10 to 40 minutes.
+- **Balanced weekly volume:** calf work on every legs and full-body day, real rows on no-equipment pull days, and weekly sets per muscle shown against a 12–20 set target.
+- **7x4 Challenge:** a 28-day full-body programme with real progress tracking.
 
-## ✨ Key Features
+### A player built for supersets
+- Paired exercises alternate **A1 → A2 → A1 → A2**, with a short transition between them and the full rest after each pair.
+- An optional 3-minute warm-up, timed holds, mid-workout exercise swaps, and voice and haptic cues.
+- Timers use real end times, so locking your phone doesn't stall them. The screen stays awake where the device supports it.
+- Ending early offers **Save what I did** or **Discard**.
 
-### 1. 📅 Master Program & Workday Splits (PPL Engine)
-* **Equipment-Adaptive Programming**: Workouts automatically re-route based on the equipment you own (Pull-Up Bar + Resistance Bands). Toggle equipment in the **Me** tab to dynamically adapt all routines.
-* **Push / Pull / Legs (PPL) Split Architectures**:
-  * **4-Day Split**: Push, Pull, Legs, Core & Conditioning (Ideal for recovery & hypertrophy).
-  * **5-Day Split**: Push, Pull, Legs, Upper Hypertrophy, Lower & Core.
-  * **6-Day Split**: Push 1, Pull 1, Legs 1, Push 2, Pull 2, Core & Conditioning.
-* **Duration Scaler**: Scale any routine between **15, 20, 30, or 45 minutes** on the fly—rep schemes and rest intervals dynamically adjust to fit your schedule.
-* **7x4 Full Body Challenge**: 28-day progressive overload program designed for total-body conditioning.
+### Progressive overload
+- A **Previous** line shows last session's reps and band for each exercise.
+- After each set, a one-tap **"reps left in the tank"** rating.
+- **Suggestions:** reach the top of the rep range with 2 or fewer reps left, and the app suggests the next band. For assisted pull-ups and dips, a *lighter* band counts as progress. You get a banner when you beat your best.
+- **Progression ladders** link easier and harder variations (push-up, pull-up, squat, dip and row).
+- A **deload reminder** after 6 straight training weeks.
 
-### 2. ⚡ Live Workout Player with Real-Time Calorie Burn
-* **Live Calorie Counter**: Real-time workout calorie expenditure computed using verified metabolic equivalent (MET ~6.0–7.5) formulas calibrated to your body weight.
-* **Animated Exercise Avatar**: Vector-rendered visual animation illustrating anatomical plane of motion, eccentric tempo, and concentric contraction.
-* **Band Resistance Stacking**: Tap any combination of owned bands to stack resistance (e.g., Orange [30 lbs] + Black [40 lbs] = 70 lbs total load).
-* **Audio Voice Coach & Timers**:
-  * Web Speech synthesized announcements (*"Ready to go"*, *"Take a rest"*, *"Halfway there"*).
-  * Synthesized frequency audio countdown beeps and start whistles.
-* **Rest Engine**: Fullscreen rest screen with circular countdown timer, technique cues for the upcoming exercise, `+20s` recovery extension, and instant skip options.
+### Verified demo videos
+Each exercise links to the second its demonstration starts. Every timestamp was checked against the source videos' chapters and transcripts. Clips are graded *exact*, *close* or *variant*, and play inside the app.
 
-### 3. 🎥 Audited Exercise Video Demonstrations (Exact Timestamps)
-Every single exercise in the 59-movement database is mapped to the exact start second (`▶ MM:SS`) where trainer demonstration begins across 4 reference video libraries:
-* **Thenx / Chris Heria**: Bar calisthenics, power band deadlifts, strict pull-ups, and band-assisted gymnastics.
-* **Fitness My Life / Slovic**: Tube band full-body mastery (lat pulldowns, tricep pushdowns, chest presses, rows).
-* **Tom Peto Training**: Loop band follow-along circuit training.
-* **Rowan Row**: Calisthenics and floor bodyweight movements.
-* *Fallback protection*: Automatically falls back to targeted YouTube form tutorials if no timestamp is present.
+| Source | Video |
+| --- | --- |
+| THENX | [20 Best Exercises You Can Do With A Resistance Band](https://youtu.be/hQ2lHMP4kco) |
+| Fitness My Life | [Full Body Workout With Resistance Bands, Session 7](https://youtu.be/njGZClD94bg) |
+| Tom Peto Training | [20 Min Full Body Resistance Band Workout](https://youtu.be/sTueHjRCMaQ) |
+| Rowan Row | [The Ultimate 45 Min Full Body Workout](https://youtu.be/cDq-nFmD0rI) |
 
-### 4. 📊 Analytics & Report Dashboard (Home Workout Style)
-* **Tri-Metric Hero Banner**: Immediate visibility of **Total Workouts**, **Total Calories Burnt (kcal)**, **Active Minutes**, and **Average Calories / Workout**.
-* **7-Day Calorie Burn Bar Chart**: Visual Mon–Sun weekly breakdown with daily averages and current week totals.
-* **Monthly Workout Calendar**: Visual calendar highlighting workout days with Dumbbell badges and burned calories (`🔥 140 kcal`).
-* **Day Inspector**: Tap any calendar day to inspect completed routines, total volume (lbs), exercises, sets, reps, and average burn rate.
-* **Weight Tracker & BMI Gauge**: Log body weight (with unrestricted backspace typing) and track your Body Mass Index across visual color gauges (Underweight, Normal, Overweight, Obese).
-* **Complete Workout History**: Searchable chronological log of all historical workouts with full exercise set breakdowns.
+Exercises with no verified clip open a YouTube search instead of a wrong timestamp.
 
-### 5. ⚙️ Offline-First & Data Sovereignty
-* **100% Offline Capable**: All routines, exercises, animations, and voice audio work completely without internet access.
-* **Zero Account Required**: Zero sign-ups, zero tracking, zero telemetries.
-* **Full Data Portability**: Export your entire workout history and profile settings as a raw JSON backup and restore it with one click.
+### Progress and data
+- The Report tab shows personal bests, sets per muscle this week, a workout calendar and full history.
+- Band loads are shown as **rated**, at the midpoint of each band's printed range, because real tension depends on stretch. Loads are stored in lbs and shown in your unit.
+- Calories are **estimates** from the 2024 Compendium of Physical Activities, by session type.
+- **No account, no tracking.** Data stays on the device. Export or import a JSON backup from the **Me** tab; backups are validated before anything is replaced.
 
 ---
 
-## 📱 Tech Stack & Architecture
+## Project structure
 
 ```
-HyTen (com.hyten.workout)
-├── Frontend Core: React 18 (Hooks, Context, StrictMode)
-├── Language: TypeScript 5.7 (Strict Type Checking)
-├── Build Engine: Vite 6.0 (Lightning-fast HMR & Tree-Shaking)
-├── Styling: Tailwind CSS 3.4 (Custom Design System, Dark Mode)
-├── Icons: Lucide React Icons
-├── Mobile Wrapper: Capacitor 8.6 (Android WebView Bridge)
-└── Audio & TTS: Web Speech API & HTML5 Audio Buffer Synthesis
-```
-
----
-
-## 🛠️ Project Structure
-
-```
-HomeWorkout/
-├── android/                 # Native Android Gradle project (Capacitor)
-│   ├── app/                 # Android application manifest, icons, build configs
-│   └── build.gradle         # Android project gradle build script
-├── public/                  # Static assets & synthesized audio cues
-├── src/
-│   ├── components/
-│   │   ├── Common/          # Avatar animations, YouTube badges
-│   │   ├── ExerciseLibrary/ # Exercise library view, video cue links
-│   │   ├── History/         # Report tab, calorie chart, calendar, BMI
-│   │   ├── Settings/        # Profile & bands management modal
-│   │   ├── Workout/         # Workout player, hub, routine builder
-│   │   └── Navbar.tsx       # Bottom 4-tab navigation & header
-│   ├── data/
-│   │   ├── defaultBands.ts  # Standard Slovic & loop band specifications
-│   │   ├── exerciseDatabase.ts # 59 exercises with exact audited video cues
-│   │   └── prebuiltWorkouts.ts # Workday PPL splits & 7x4 challenge routines
-│   ├── types/               # TypeScript interfaces & types
-│   ├── utils/
-│   │   ├── equipmentManager.ts # Equipment routing logic
-│   │   ├── nutritionMath.ts    # MET calorie formulas & weekly statistics
-│   │   ├── routineScaler.ts    # 15/20/30/45 minute dynamic scaler
-│   │   ├── soundEffects.ts     # Voice coach & audio cue synthesizer
-│   │   └── storage.ts          # LocalStorage persistence & JSON export/import
-│   ├── App.tsx              # Root application router & state controller
-│   ├── index.css            # Tailwind directives & design tokens
-│   └── main.tsx             # React DOM entry point
-├── capacitor.config.ts      # Capacitor mobile configuration
-├── package.json             # NPM dependencies & scripts
-├── tailwind.config.js       # Color palette & responsive breakpoints
-├── tsconfig.json            # TypeScript compiler configuration
-└── vite.config.ts           # Vite dev server & production bundling
+src/
+├── App.tsx                     # Tabs, first-run setup, player overlay
+├── components/
+│   ├── Common/                 # Avatar animation, confirm sheet, in-app video sheet
+│   ├── ExerciseLibrary/        # Library, ladders, common mistakes
+│   ├── History/                # Report tab + progress panel
+│   ├── Onboarding/             # First-run setup
+│   ├── Settings/               # Profile, equipment, bands, backups
+│   └── Workout/                # Today screen, player, routine builder
+├── data/
+│   ├── exerciseDatabase.ts     # Exercises + verified video cues
+│   ├── extraExercises.ts       # Added movements, ladders, form mistakes
+│   ├── prebuiltWorkouts.ts     # Hand-written base routines
+│   └── routineVariants.ts      # Split variants and programming fixes
+└── utils/
+    ├── sessionQueue.ts         # Superset set order and rests
+    ├── progression.ts          # Rep ranges, suggestions, deloads
+    ├── streak.ts               # Weekly streak against the plan
+    ├── bands.ts                # Band ranges, stacking, units
+    ├── equipmentManager.ts     # Equipment modes, schedules, substitutions
+    ├── routineScaler.ts        # 10–40 minute scaling
+    └── storage.ts              # Versioned local storage, migration, backups
+tests/                          # Node test runner suites
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting started
 
-### Prerequisites
-* **Node.js**: v18.0.0 or higher
-* **npm**: v9.0.0 or higher
-* **Java Development Kit (JDK)**: JDK 17 or higher (for Android APK compilation)
-* **Android Studio & SDK**: API Level 34+ (optional, for native builds)
+Requires Node.js 18+ (CI uses 22).
 
-### 1. Installation
-Clone the repository and install dependencies:
 ```bash
-git clone https://github.com/J-Krishnanandhaa/HiTen.git
-cd HiTen
 npm install
+npm run dev        # http://localhost:5174 (add -- --host to open on your phone)
+npm run build      # typecheck + production build into dist/
+npm test           # unit tests for routines, video cues, progression and storage
 ```
 
-### 2. Run Local Development Server
-Start the local Vite dev server with Hot Module Replacement (HMR):
+### Android
+
 ```bash
-npm run dev
-```
-Open **[http://localhost:5174](http://localhost:5174)** in your browser.
-
-To access the app from your phone on the same Wi-Fi network:
-```bash
-npm run dev -- --host
-```
-
-### 3. Production Web Build
-```bash
-npm run build
-```
-Generates an optimized static bundle in `dist/`.
-
----
-
-## 🤖 Android Compilation & Installation
-
-### Build Debug APK via Gradle
-```bash
-# 1. Build web assets & sync to Android project
 npm run build
 npx cap sync android
-
-# 2. Compile APK with Gradle
-cd android
-./gradlew assembleDebug
-
-# Output APK:
+cd android && ./gradlew assembleDebug
 # android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### Install Directly on Android Device via ADB
-```bash
-adb install -r "HyTen.apk"
-```
+Install on a connected device with `adb install -r app-debug.apk`.
 
-You can also download [HyTen.apk](./HyTen.apk) directly from this repository and install it on your Android smartphone.
+> The `HyTen.apk` in the repository was built before these changes. Rebuild it, or attach new builds to a GitHub Release instead of committing them.
 
 ---
 
-## 📄 License
-This project is open-source and available under the **MIT License**.
+## Upgrading from 1.0
+
+On first launch, 1.1 copies your data from the old `bandfit_*` storage keys to versioned `hyten_*` keys. Workouts logged in kg are converted to the new lbs storage, and the old keys are kept as a fallback. Existing users skip the setup screen.
+
+## License
+
+MIT
