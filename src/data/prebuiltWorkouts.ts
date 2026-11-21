@@ -1,4 +1,5 @@
-import { Routine, RoutineExercise } from '../types';
+import { Routine } from '../types';
+import { expandRoutines } from './routineVariants';
 
 export interface LeapRoutine extends Routine {
   category?: string;
@@ -7,7 +8,7 @@ export interface LeapRoutine extends Routine {
   isPPL?: boolean;
 }
 
-export const PREBUILT_ROUTINES: LeapRoutine[] = [
+const BASE_ROUTINES: LeapRoutine[] = [
   {
     "id": "routine-hybrid-push-1",
     "name": "Hybrid Push Hypertrophy \u26a1",
@@ -3324,3 +3325,6 @@ export const PREBUILT_ROUTINES: LeapRoutine[] = [
     ]
   }
 ];
+
+/** Base routines plus the programming fixes and split variants (see routineVariants.ts). */
+export const PREBUILT_ROUTINES: LeapRoutine[] = expandRoutines(BASE_ROUTINES);

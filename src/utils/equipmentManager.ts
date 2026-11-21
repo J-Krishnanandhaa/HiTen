@@ -31,7 +31,7 @@ export function getEquipmentModeDetails(mode: EquipmentMode): EquipmentModeDetai
         title: 'Full Hybrid System',
         badge: '✨ Bands + Bar + Bodyweight',
         color: '#2979FF',
-        description: 'All 56+ exercises and progressive overload routines are fully unlocked.',
+        description: 'Every exercise and routine is unlocked.',
         gearSummary: 'Slovic Loop Bands + Door / Wall Pull-Up Bar',
       };
     case 'bands-only':
@@ -101,29 +101,32 @@ export function getWorkdayTierRoutineMap(
       6: { 1: ``, 2: ``, 3: `` }, // Sun: Rest
     };
   } else if (scheduleMode === '5-day') {
-    // 5-Day Master Schedule: Mon: Push, Tue: Pull, Wed: Legs, Thu: Rest, Fri: Full Body, Sat: Core, Sun: Rest
+    // 5-Day: Mon Push, Tue Pull, Wed Legs, Thu Rest, Fri Upper, Sat Lower & Core, Sun Rest
     return {
       0: { 1: `routine-${prefix}-push-1`, 2: `routine-${prefix}-push-2`, 3: `routine-${prefix}-push-3` },
       1: { 1: `routine-${prefix}-pull-1`, 2: `routine-${prefix}-pull-2`, 3: `routine-${prefix}-pull-3` },
       2: { 1: `routine-${prefix}-legs-1`, 2: `routine-${prefix}-legs-2`, 3: `routine-${prefix}-legs-3` },
-      3: { 1: ``, 2: ``, 3: `` }, // Thu: Rest
-      4: { 1: `routine-${prefix}-fullbody-1`, 2: `routine-${prefix}-fullbody-2`, 3: `routine-${prefix}-fullbody-3` },
-      5: { 1: `routine-${prefix}-core-1`, 2: `routine-${prefix}-core-2`, 3: `routine-${prefix}-core-3` },
+      3: { 1: ``, 2: ``, 3: `` },
+      4: { 1: `routine-${prefix}-upper-1`, 2: `routine-${prefix}-upper-2`, 3: `routine-${prefix}-upper-3` },
+      5: { 1: `routine-${prefix}-lower-1`, 2: `routine-${prefix}-lower-2`, 3: `routine-${prefix}-lower-3` },
       6: { 1: ``, 2: ``, 3: `` },
     };
   } else {
-    // 6-Day Master Schedule: Mon: Push A, Tue: Pull A, Wed: Legs A, Thu: Push B, Fri: Pull B, Sat: Legs B + Core, Sun: Rest
+    // 6-Day: Push A, Pull A, Legs A, Push B, Pull B, Legs B + Core, Sun Rest
     return {
       0: { 1: `routine-${prefix}-push-1`, 2: `routine-${prefix}-push-2`, 3: `routine-${prefix}-push-3` },
       1: { 1: `routine-${prefix}-pull-1`, 2: `routine-${prefix}-pull-2`, 3: `routine-${prefix}-pull-3` },
       2: { 1: `routine-${prefix}-legs-1`, 2: `routine-${prefix}-legs-2`, 3: `routine-${prefix}-legs-3` },
-      3: { 1: `routine-${prefix}-push-1`, 2: `routine-${prefix}-push-2`, 3: `routine-${prefix}-push-3` },
-      4: { 1: `routine-${prefix}-pull-1`, 2: `routine-${prefix}-pull-2`, 3: `routine-${prefix}-pull-3` },
-      5: { 1: `routine-${prefix}-core-1`, 2: `routine-${prefix}-core-2`, 3: `routine-${prefix}-core-3` },
+      3: { 1: `routine-${prefix}-pushb-1`, 2: `routine-${prefix}-pushb-2`, 3: `routine-${prefix}-pushb-3` },
+      4: { 1: `routine-${prefix}-pullb-1`, 2: `routine-${prefix}-pullb-2`, 3: `routine-${prefix}-pullb-3` },
+      5: { 1: `routine-${prefix}-legsb-1`, 2: `routine-${prefix}-legsb-2`, 3: `routine-${prefix}-legsb-3` },
       6: { 1: ``, 2: ``, 3: `` },
     };
   }
 }
+
+/** Training sessions per week for each schedule (optional core day not counted). */
+export const SCHEDULE_WEEKLY_GOAL: Record<'4-day' | '5-day' | '6-day', number> = { '4-day': 4, '5-day': 5, '6-day': 6 };
 
 /**
  * Intelligent exercise substitution mapping when user lacks certain equipment.
@@ -135,7 +138,7 @@ export const EXERCISE_SUBSTITUTIONS: Record<
   // Bar Exercises -> Substitutes
   'bar-pullup-assisted': {
     bandOnly: 'bent-over-row-feet',
-    bodyweightOnly: 'bodyweight-superman-pulses',
+    bodyweightOnly: 'bodyweight-table-row',
     barOnly: 'bar-pullup-strict',
   },
   'bar-chinup-assisted': {
@@ -145,7 +148,7 @@ export const EXERCISE_SUBSTITUTIONS: Record<
   },
   'bar-pullup-strict': {
     bandOnly: 'bent-over-row-feet',
-    bodyweightOnly: 'bodyweight-superman-pulses',
+    bodyweightOnly: 'bodyweight-table-row',
   },
   'bar-hanging-leg-raise': {
     bandOnly: 'kneeling-cable-crunch-band',
@@ -153,7 +156,7 @@ export const EXERCISE_SUBSTITUTIONS: Record<
   },
   'bar-band-lat-pulldown': {
     bandOnly: 'single-arm-lat-row',
-    bodyweightOnly: 'bodyweight-superman-pulses',
+    bodyweightOnly: 'bodyweight-table-row',
     barOnly: 'bar-pullup-strict',
   },
   'bar-band-face-pull': {
@@ -163,10 +166,6 @@ export const EXERCISE_SUBSTITUTIONS: Record<
   'bar-band-tricep-pushdown': {
     bandOnly: 'tricep-pushdown-band',
     bodyweightOnly: 'bodyweight-diamond-pushup',
-  },
-  'bar-dead-hang': {
-    bandOnly: 'seated-face-pull',
-    bodyweightOnly: 'bodyweight-pushup-downward-dog',
   },
 
   // Band Exercises -> Bodyweight or Bar Substitutes
@@ -191,11 +190,11 @@ export const EXERCISE_SUBSTITUTIONS: Record<
     barOnly: 'bodyweight-pushup-downward-dog',
   },
   'bent-over-row-feet': {
-    bodyweightOnly: 'bodyweight-superman-pulses',
+    bodyweightOnly: 'bodyweight-table-row',
     barOnly: 'bar-pullup-strict',
   },
   'single-arm-lat-row': {
-    bodyweightOnly: 'bodyweight-superman-pulses',
+    bodyweightOnly: 'bodyweight-doorframe-row',
     barOnly: 'bar-pullup-strict',
   },
   'seated-face-pull': {
@@ -298,6 +297,19 @@ export const EXERCISE_SUBSTITUTIONS: Record<
     bodyweightOnly: 'bodyweight-diamond-pushup',
     barOnly: 'bar-pullup-strict',
   },
+
+  // Added exercises
+  'band-lying-leg-curl': { bodyweightOnly: 'bodyweight-glute-bridge', barOnly: 'bodyweight-glute-bridge' },
+  'band-single-leg-rdl': { bodyweightOnly: 'bodyweight-bulgarian-split-squat', barOnly: 'bodyweight-bulgarian-split-squat' },
+  'band-upright-row': { bodyweightOnly: 'bodyweight-pike-pushup', barOnly: 'bodyweight-pike-pushup' },
+  'band-pull-apart': { bodyweightOnly: 'bodyweight-superman-pulses', barOnly: 'bodyweight-superman-pulses' },
+  'band-overhead-squat': { bodyweightOnly: 'bodyweight-air-squat', barOnly: 'bodyweight-air-squat' },
+  'band-tricep-kickback': { bodyweightOnly: 'bodyweight-bench-dip', barOnly: 'bodyweight-bench-dip' },
+  'bar-band-assisted-dip': { bandOnly: 'band-tricep-kickback', bodyweightOnly: 'bodyweight-bench-dip', barOnly: 'bodyweight-bench-dip' },
+  'bar-band-front-lever-raise': { bandOnly: 'single-arm-lat-row', bodyweightOnly: 'bodyweight-table-row', barOnly: 'bar-hanging-leg-raise' },
+  'bar-band-planche-lean': { bodyweightOnly: 'bodyweight-pike-pushup', barOnly: 'bodyweight-pike-pushup' },
+  'bar-negative-pullup': { bandOnly: 'bent-over-row-feet', bodyweightOnly: 'bodyweight-table-row' },
+  'bar-dead-hang': { bandOnly: 'band-pull-apart', bodyweightOnly: 'bodyweight-pushup-downward-dog' },
 };
 
 /**
