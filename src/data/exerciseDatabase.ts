@@ -1,4 +1,8 @@
 import { Exercise } from '../types';
+import {
+  EXTRA_EXERCISES, PROGRESSION_LADDERS, COMMON_MISTAKES,
+  TIMED_EXERCISES, ASSISTED_EXERCISES, COMPOUND_EXERCISES,
+} from './extraExercises';
 
 /**
  * VERIFIED VIDEO DEMONSTRATION CUES (audited 21 Nov 2026 against each video's
@@ -103,6 +107,22 @@ export const EXERCISE_VIDEO_CUES: Record<string, ExerciseVideoCue> = {
   'bodyweight-mountain-climbers':   { source: 'rowan', start: 2077, match: 'close',   label: 'Mountain Climbers' },
   'bodyweight-jump-squats':         { source: 'rowan', start: 2139, match: 'exact',   label: 'Jump Squats' },
   'bodyweight-full-burpees':        { source: 'rowan', start: 2250, match: 'exact',   label: 'Burpees' },
+
+  // --- Added exercises ---
+  'band-single-leg-rdl':            { source: 'thenx', start: 271,  match: 'exact',   label: 'Single-Leg Romanian Deadlift (band)' },
+  'bodyweight-side-lunge':          { source: 'rowan', start: 621,  match: 'exact',   label: 'Side Lunges' },
+  'band-upright-row':               { source: 'peto',  start: 253,  match: 'exact',   label: 'Upright Row' },
+  'band-pull-apart':                { source: 'peto',  start: 301,  match: 'exact',   label: 'Band Pull-Apart' },
+  'band-overhead-squat':            { source: 'peto',  start: 361,  match: 'exact',   label: 'Overhead Squat' },
+  'bar-band-assisted-dip':          { source: 'thenx', start: 218,  match: 'exact',   label: 'Straight Bar Dips (band assistance)' },
+  'band-tricep-kickback':           { source: 'fml',   start: 181,  match: 'exact',   label: 'Triceps Kickback (low anchor)' },
+  'bodyweight-leg-scissors':        { source: 'rowan', start: 1740, match: 'exact',   label: 'Leg Scissors' },
+  'bodyweight-long-arm-crunch':     { source: 'rowan', start: 1443, match: 'exact',   label: 'Long-Arm Crunches' },
+  'bodyweight-side-plank-rotation': { source: 'rowan', start: 1297, match: 'exact',   label: 'Side Plank Rotation' },
+  'bodyweight-plank-crunch':        { source: 'rowan', start: 2026, match: 'exact',   label: 'Plank Crunches' },
+  'bar-band-planche-lean':          { source: 'thenx', start: 437,  match: 'exact',   label: 'Assisted Planche Leans' },
+  'bar-band-front-lever-raise':     { source: 'thenx', start: 460,  match: 'exact',   label: 'Assisted Front Lever Raises' },
+  'bodyweight-single-leg-calf-raise': { source: 'thenx', start: 371, match: 'variant', label: 'Seated Calf Raise (band)' },
 };
 
 /** Back-compat: id → timestamped URL (only verified cues). */
@@ -1020,8 +1040,7 @@ const RAW_EXERCISES: Exercise[] = [
   {
     id: 'tube-calf-raise',
     name: 'Standing Resistance Band Calf Raise',
-    targetMuscle: 'Quads',
-    secondaryMuscles: ['Forearms'],
+    targetMuscle: 'Calves',
     bandType: 'Long Loop Band',
     anchorPosition: 'Under Feet',
     difficulty: 'Beginner',
@@ -1649,8 +1668,7 @@ const RAW_EXERCISES: Exercise[] = [
   {
     id: 'bodyweight-standing-calf-raise',
     name: 'Floor Standing Calf Raise',
-    targetMuscle: 'Quads',
-    secondaryMuscles: ['Hamstrings'],
+    targetMuscle: 'Calves',
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
@@ -1794,11 +1812,33 @@ const RAW_EXERCISES: Exercise[] = [
   },
 ];
 
-export const EXERCISE_DATABASE: Exercise[] = RAW_EXERCISES.map(e => ({
+const LADDER_NEIGHBOURS: Record<string, { easierId?: string; harderId?: string }> = {};
+for (const ladder of PROGRESSION_LADDERS) {
+  ladder.forEach((id, i) => {
+    const entry = (LADDER_NEIGHBOURS[id] ||= {});
+    if (i > 0 && !entry.easierId) entry.easierId = ladder[i - 1];
+    if (i < ladder.length - 1 && !entry.harderId) entry.harderId = ladder[i + 1];
+  });
+}
+
+export const EXERCISE_DATABASE: Exercise[] = [...RAW_EXERCISES, ...EXTRA_EXERCISES].map(e => ({
   ...e,
-  youtubeUrl: EXERCISE_YOUTUBE_TIMESTAMPS[e.id] || e.youtubeUrl || 'https://youtu.be/njGZClD94bg',
+  // One source of truth for demo links: verified cue or a targeted search.
+  youtubeUrl: getExerciseYoutubeUrl(e.id, e.name),
+  sourceVideo: undefined,
+  isTimed: e.isTimed || TIMED_EXERCISES.has(e.id),
+  isAssisted: e.isAssisted || ASSISTED_EXERCISES.has(e.id),
+  isCompound: e.isCompound || COMPOUND_EXERCISES.has(e.id),
+  commonMistakes: e.commonMistakes || COMMON_MISTAKES[e.id],
+  easierId: e.easierId || LADDER_NEIGHBOURS[e.id]?.easierId,
+  harderId: e.harderId || LADDER_NEIGHBOURS[e.id]?.harderId,
 }));
 
+const EXERCISE_BY_ID = new Map(EXERCISE_DATABASE.map(e => [e.id, e]));
+
+export function getExerciseById(id: string): Exercise | undefined {
+  return EXERCISE_BY_ID.get(id);
+}
 
 export function isExerciseAvailable(
   exercise: Exercise,
