@@ -242,8 +242,8 @@ export const EXERCISE_SUBSTITUTIONS: Record<
     barOnly: 'bodyweight-air-squat',
   },
   'romanian-deadlift-band': {
-    bodyweightOnly: 'bodyweight-glute-bridge',
-    barOnly: 'bodyweight-glute-bridge',
+    bodyweightOnly: 'bodyweight-slider-leg-curl',
+    barOnly: 'bodyweight-slider-leg-curl',
   },
   'chris-heria-deadlift': {
     bodyweightOnly: 'bodyweight-glute-bridge',
@@ -299,8 +299,8 @@ export const EXERCISE_SUBSTITUTIONS: Record<
   },
 
   // Added exercises
-  'band-lying-leg-curl': { bodyweightOnly: 'bodyweight-glute-bridge', barOnly: 'bodyweight-glute-bridge' },
-  'band-single-leg-rdl': { bodyweightOnly: 'bodyweight-bulgarian-split-squat', barOnly: 'bodyweight-bulgarian-split-squat' },
+  'band-lying-leg-curl': { bodyweightOnly: 'bodyweight-slider-leg-curl', barOnly: 'bodyweight-slider-leg-curl' },
+  'band-single-leg-rdl': { bodyweightOnly: 'bodyweight-nordic-negative', barOnly: 'bodyweight-nordic-negative' },
   'band-upright-row': { bodyweightOnly: 'bodyweight-pike-pushup', barOnly: 'bodyweight-pike-pushup' },
   'band-pull-apart': { bodyweightOnly: 'bodyweight-superman-pulses', barOnly: 'bodyweight-superman-pulses' },
   'band-overhead-squat': { bodyweightOnly: 'bodyweight-air-squat', barOnly: 'bodyweight-air-squat' },

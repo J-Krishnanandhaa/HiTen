@@ -1,7 +1,7 @@
 import { Exercise } from '../types';
 import {
   EXTRA_EXERCISES, PROGRESSION_LADDERS, COMMON_MISTAKES,
-  TIMED_EXERCISES, ASSISTED_EXERCISES, COMPOUND_EXERCISES,
+  TIMED_EXERCISES, ASSISTED_EXERCISES, COMPOUND_EXERCISES, defaultTempo,
 } from './extraExercises';
 
 /**
@@ -1821,7 +1821,7 @@ for (const ladder of PROGRESSION_LADDERS) {
   });
 }
 
-export const EXERCISE_DATABASE: Exercise[] = [...RAW_EXERCISES, ...EXTRA_EXERCISES].map(e => ({
+const MERGED: Exercise[] = [...RAW_EXERCISES, ...EXTRA_EXERCISES].map(e => ({
   ...e,
   // One source of truth for demo links: verified cue or a targeted search.
   youtubeUrl: getExerciseYoutubeUrl(e.id, e.name),
@@ -1833,6 +1833,8 @@ export const EXERCISE_DATABASE: Exercise[] = [...RAW_EXERCISES, ...EXTRA_EXERCIS
   easierId: e.easierId || LADDER_NEIGHBOURS[e.id]?.easierId,
   harderId: e.harderId || LADDER_NEIGHBOURS[e.id]?.harderId,
 }));
+
+export const EXERCISE_DATABASE: Exercise[] = MERGED.map(e => ({ ...e, tempo: defaultTempo(e) }));
 
 const EXERCISE_BY_ID = new Map(EXERCISE_DATABASE.map(e => [e.id, e]));
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Trash2, Download, Upload, RotateCcw, 
   Check, User, Layers, ShieldCheck, Dumbbell, Sparkles, Clock,
-  ExternalLink, CheckCircle2, XCircle, Palette
+  ExternalLink, CheckCircle2, XCircle
 } from 'lucide-react';
 import { UserProfile, ResistanceBand, BandType } from '../../types';
 import { ALL_DEFAULT_BANDS, SLOVIC_LOOP_BANDS } from '../../data/defaultBands';
@@ -11,7 +11,6 @@ import { getDurationPresetInfo } from '../../utils/routineScaler';
 import { getEquipmentMode, getEquipmentModeDetails } from '../../utils/equipmentManager';
 import { bandRangeLabel } from '../../utils/bands';
 import { ConfirmSheet } from '../Common/ConfirmSheet';
-import { THEME_OPTIONS, getActiveTheme, setActiveTheme, ThemeId } from '../../utils/theme';
 
 interface ProfileAndBandsModalProps {
   userProfile: UserProfile;
@@ -23,17 +22,8 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
   onUpdateProfile,
 }) => {
   const [profile, setProfile] = useState<UserProfile>(userProfile);
-  const [activeThemeId, setActiveThemeId] = useState<ThemeId>(() => getActiveTheme());
   const [isSavedAlert, setIsSavedAlert] = useState(false);
 
-  useEffect(() => {
-    const handleThemeChange = (e: Event) => {
-      const customEvent = e as CustomEvent<ThemeId>;
-      setActiveThemeId(customEvent.detail);
-    };
-    window.addEventListener('hyten_theme_change', handleThemeChange);
-    return () => window.removeEventListener('hyten_theme_change', handleThemeChange);
-  }, []);
   const [reloadedToast, setReloadedToast] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -799,72 +789,6 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
             >
               Save Profile Changes
             </button>
-          </div>
-
-          {/* 5. COLOR PALETTE */}
-          <div className="hy-card p-5 space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-hy-elevated">
-              <div className="flex items-center gap-2">
-                <Palette className="w-4 h-4 text-hy-primary" />
-                <h3 className="text-sm font-bold text-white">Visual Aesthetic</h3>
-              </div>
-              <span className="text-[11px] font-semibold text-hy-primary bg-hy-primary/10 px-2 py-0.5 rounded-full border border-hy-primary/20">
-                Pro Athleisure
-              </span>
-            </div>
-            <p className="text-xs text-hy-text-2 leading-relaxed">
-              Curated for OLED contrast, biometric telemetry, and high-energy workout focus. Tap any theme to switch live.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-              {THEME_OPTIONS.map((t) => {
-                const isSelected = activeThemeId === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveThemeId(t.id);
-                      setActiveTheme(t.id);
-                    }}
-                    className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-3 relative overflow-hidden group ${
-                      isSelected
-                        ? 'border-hy-primary bg-hy-surface-hover ring-2 ring-hy-primary/40 shadow-lg'
-                        : 'border-hy-border/50 bg-hy-surface hover:bg-hy-surface-hover hover:border-hy-border'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-xs font-black text-white tracking-wide flex items-center gap-1.5">
-                          {t.name}
-                          {isSelected && (
-                            <span className="text-[10px] text-hy-primary font-bold">Active</span>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-hy-text-2 mt-0.5">{t.tagline}</div>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
-                        isSelected ? 'bg-hy-primary border-hy-primary text-hy-on-primary' : 'border-hy-border bg-hy-bg/60 text-transparent'
-                      }`}>
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </div>
-                    </div>
-
-                    {/* Palette Swatch Bar showing all colors from Octet */}
-                    <div className="flex items-center gap-1.5 pt-1">
-                      {t.swatches.map((color, idx) => (
-                        <span
-                          key={idx}
-                          className="flex-1 h-3 rounded-full border border-white/10 shadow-sm transition-transform group-hover:scale-105"
-                          style={{ backgroundColor: color }}
-                          title={color}
-                        />
-                      ))}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           {/* 6. DATA PORTABILITY (EXPORT / IMPORT JSON BACKUP) */}

@@ -49,6 +49,13 @@ function fixBase(r: LeapRoutine): LeapRoutine {
     exercises = exercises.map(e => (e.exerciseId === 'bodyweight-glute-bridge' ? { ...e, exerciseId: 'bodyweight-table-row', targetReps: 10 } : e));
   }
 
+  if ((mode === 'no-equipment' || mode === 'bar-only') && cat === 'Legs') {
+    // Bodyweight legs had no hamstring work: swap the glute bridge for slider curls.
+    exercises = exercises.map(e =>
+      e.exerciseId === 'bodyweight-glute-bridge' ? { ...e, exerciseId: 'bodyweight-slider-leg-curl', targetReps: Math.min(e.targetReps, 12) } : e
+    );
+  }
+
   if ((cat === 'Legs' || cat === 'Full Body Flow') && !exercises.some(e => CALF_IDS.has(e.exerciseId))) {
     exercises.push(calfFor(mode));
   }
@@ -102,7 +109,10 @@ function makeVariants(base: LeapRoutine[], mode: Mode, tier: Tier): LeapRoutine[
     name: `${label} Lower & Core`,
     category: 'Lower',
     description: 'Quads, hamstrings and glutes, finished with core and calves.',
-    exercises: [...withRest([pick(legs, 0), pick(legs, 1), pick(legs, 2), pick(legs, 3), pick(core, 0), pick(core, 1)]), calfFor(mode)],
+    exercises: (() => {
+      const main = withRest([pick(legs, 0), pick(legs, 1), pick(legs, 2), pick(legs, 3), pick(core, 0), pick(core, 1)]);
+      return main.some(e => CALF_IDS.has(e.exerciseId)) ? main : [...main, calfFor(mode)];
+    })(),
   };
 
   const pushB: LeapRoutine = {
@@ -146,7 +156,7 @@ function makeVariants(base: LeapRoutine[], mode: Mode, tier: Tier): LeapRoutine[
             ]
           : [
               { exerciseId: 'bodyweight-bulgarian-split-squat', sets: 3, targetReps: 10, targetRestSeconds: 10, notes: 'Each leg' },
-              pick(legs, 3),
+              { exerciseId: 'bodyweight-nordic-negative', sets: 3, targetReps: 5, targetRestSeconds: 10, notes: 'Lower over 5 s' },
               { exerciseId: 'bodyweight-step-up', sets: 3, targetReps: 12, targetRestSeconds: 10, notes: 'Each leg' },
               { exerciseId: 'bodyweight-side-lunge', sets: 3, targetReps: 12, targetRestSeconds: 30 },
               pick(core, 2),

@@ -129,6 +129,8 @@ export interface Exercise {
   /** Multi-joint lift that gets longer rest between rounds. */
   isCompound?: boolean;
   commonMistakes?: string[];
+  /** Default tempo, lower-pause-lift seconds (e.g. "3-1-1"); "X" = explosive. */
+  tempo?: string;
   /** Calisthenics progression ladder neighbours. */
   easierId?: string;
   harderId?: string;
@@ -140,6 +142,8 @@ export interface RoutineExercise {
   targetReps: number;
   targetRestSeconds: number;
   notes?: string;
+  /** Lower-pause-lift seconds, e.g. "3-1-1". "X" = explosive. Overrides the exercise default. */
+  tempo?: string;
 }
 
 export interface Routine {

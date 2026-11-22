@@ -69,6 +69,50 @@ export const EXTRA_EXERCISES: Exercise[] = [
     estimatedCaloriesPerMin: 4.0,
   },
 
+  {
+    id: 'bodyweight-slider-leg-curl',
+    name: 'Towel Slider Leg Curl',
+    targetMuscle: 'Hamstrings',
+    secondaryMuscles: ['Glutes', 'Core'],
+    bandType: 'None',
+    anchorPosition: 'None',
+    difficulty: 'Intermediate',
+    avatarAnimation: 'glute-bridge',
+    tempo: '1-0-3',
+    instructions: [
+      'Lie on your back on a smooth floor with heels on a towel (or socks), knees bent.',
+      'Lift your hips into a bridge.',
+      'Slide the heels away until the legs are almost straight, keeping hips up.',
+      'Curl the heels back under you.',
+    ],
+    formCues: ['Hips stay high the whole set.', 'Slow on the way out.'],
+    commonMistakes: ['Hips dropping as the legs straighten', 'Rushing the slide out'],
+    tips: 'Too hard? Slide out only, then lower the hips and reset.',
+    estimatedCaloriesPerMin: 5.0,
+  },
+  {
+    id: 'bodyweight-nordic-negative',
+    name: 'Nordic Curl Negative',
+    targetMuscle: 'Hamstrings',
+    secondaryMuscles: ['Glutes', 'Calves'],
+    bandType: 'None',
+    anchorPosition: 'None',
+    difficulty: 'Advanced',
+    isCompound: true,
+    avatarAnimation: 'glute-bridge',
+    tempo: '5-0-X',
+    instructions: [
+      'Kneel on a cushion with your heels anchored under a sofa or held by a partner.',
+      'Keep a straight line from knees to head.',
+      'Lower forward as slowly as you can, then catch yourself with your hands.',
+      'Push back up with your hands and repeat.',
+    ],
+    formCues: ['Hips stay extended; don\'t bend at the waist.', 'Aim for a 5-second lowering.'],
+    commonMistakes: ['Bending at the hips to shorten the lever', 'Dropping the last half'],
+    tips: 'The best bodyweight hamstring move. Start with 3–5 reps.',
+    estimatedCaloriesPerMin: 5.5,
+  },
+
   // --- Single-leg strength -------------------------------------------------
   {
     id: 'bodyweight-bulgarian-split-squat',
@@ -510,7 +554,29 @@ export const PROGRESSION_LADDERS: string[][] = [
   ['bodyweight-air-squat', 'banded-squat-front', 'bodyweight-bulgarian-split-squat', 'bodyweight-pistol-squat-assisted'],
   ['bodyweight-bench-dip', 'bar-band-assisted-dip'],
   ['bodyweight-doorframe-row', 'bodyweight-table-row', 'bar-negative-pullup'],
+  ['bodyweight-glute-bridge', 'bodyweight-slider-leg-curl', 'bodyweight-nordic-negative'],
 ];
+
+/** Moves done fast and powerfully: tempo "X". */
+export const EXPLOSIVE_EXERCISES = new Set([
+  'bodyweight-jump-squats', 'bodyweight-full-burpees', 'band-thruster', 'bodyweight-mountain-climbers',
+]);
+
+/** Default tempo: compound lifts lower slowly; isolation moves pause at the squeeze. */
+export function defaultTempo(e: { id: string; isTimed?: boolean; isCompound?: boolean; tempo?: string }): string | undefined {
+  if (e.tempo) return e.tempo;
+  if (e.isTimed) return undefined;
+  if (EXPLOSIVE_EXERCISES.has(e.id)) return 'X';
+  return e.isCompound ? '3-1-1' : '2-1-2';
+}
+
+/** "3-1-1" -> "3 s down · 1 s pause · 1 s up". */
+export function describeTempo(t: string): string {
+  if (t === 'X') return 'Explosive, controlled landing';
+  const [down, pause, up] = t.split('-');
+  const part = (v: string, label: string) => (v === 'X' ? `explosive ${label}` : `${v} s ${label}`);
+  return [part(down, 'down'), part(pause, 'pause'), part(up, 'up')].join(' · ');
+}
 
 /** Common form mistakes for the most-used existing exercises. */
 export const COMMON_MISTAKES: Record<string, string[]> = {
