@@ -1,353 +1,269 @@
-import React, { useState } from 'react';
-import { Search, ChevronRight, X, Shield, Check, ExternalLink } from 'lucide-react';
-import { Exercise } from '../../types';
-import { EXERCISE_DATABASE, getExerciseById, getExerciseTimestampLabel, getExerciseVideoCue, getExerciseVideoSource } from '../../data/exerciseDatabase';
-import { VideoDemoSheet } from '../Common/VideoDemoSheet';
+import React, { useMemo, useState } from 'react';
+import { Search, SlidersHorizontal, ArrowLeft, X, ExternalLink } from 'lucide-react';
+import { Exercise, UserProfile, WorkoutSessionLog } from '../../types';
+import {
+  EXERCISE_DATABASE, getExerciseById, getExerciseVideoCue, getExerciseYoutubeUrl, VIDEO_SOURCES,
+} from '../../data/exerciseDatabase';
+import { describeTempo } from '../../data/extraExercises';
 import { WorkoutAvatar } from '../Common/WorkoutAvatar';
-import { YoutubeIcon } from '../Common/YoutubeIcon';
 
-export const ExerciseLibraryView: React.FC = () => {
-  const [videoFor, setVideoFor] = useState<Exercise | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMuscle, setSelectedMuscle] = useState<string>('All');
-  const [selectedAnchor, setSelectedAnchor] = useState<string>('All');
-  const [selectedEquipment, setSelectedEquipment] = useState<'All' | 'Bands' | 'Pull-Up Bar' | 'No Equipment'>('All');
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+const MUSCLES = ['All', 'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core', 'Full Body'];
+type Gear = 'All' | 'Bands' | 'Bar' | 'None';
+const GEAR: { id: Gear; label: string }[] = [
+  { id: 'All', label: 'Any gear' }, { id: 'Bands', label: 'Bands' }, { id: 'Bar', label: 'Pull-up bar' }, { id: 'None', label: 'No gear' },
+];
 
-  const muscleGroups = ['All', 'Back', 'Chest', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Core', 'Full Body'];
-  const anchorPositions = ['All', 'Bar', 'Door High', 'Door Middle', 'Door Low', 'Under Feet', 'Behind Back', 'None'];
+const LEVEL: Record<Exercise['difficulty'], { label: string; cls: string }> = {
+  Beginner: { label: 'Easy', cls: 'text-hy-success bg-hy-success/10' },
+  Intermediate: { label: 'Medium', cls: 'text-hy-warning bg-hy-warning/10' },
+  Advanced: { label: 'Hard', cls: 'text-hy-danger bg-hy-danger/10' },
+};
 
-  const filteredExercises = EXERCISE_DATABASE.filter(ex => {
-    const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ex.targetMuscle.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesMuscle = selectedMuscle === 'All' || ex.targetMuscle === selectedMuscle;
-    const matchesAnchor = selectedAnchor === 'All' || ex.anchorPosition === selectedAnchor || (selectedAnchor === 'Bar' && (ex.anchorPosition === 'Bar' || ex.anchorPosition === 'Pull-Up Bar'));
-    const matchesEquipment = 
-      selectedEquipment === 'All' ||
-      (selectedEquipment === 'Bands' && ex.requiresBand) ||
-      (selectedEquipment === 'Pull-Up Bar' && ex.requiresBar) ||
-      (selectedEquipment === 'No Equipment' && !ex.requiresBand && !ex.requiresBar);
+const gearLine = (ex: Exercise) =>
+  ex.requiresBand && ex.requiresBar ? 'Band + pull-up bar'
+    : ex.requiresBar ? 'Pull-up bar'
+      : ex.requiresBand ? `Band · ${ex.anchorPosition}`
+        : 'No equipment';
 
-    return matchesSearch && matchesMuscle && matchesAnchor && matchesEquipment;
-  });
+const Thumb: React.FC<{ ex: Exercise }> = ({ ex }) => (
+  <div className="w-14 h-14 rounded-2xl bg-hy-bg-2 overflow-hidden flex items-center justify-center shrink-0">
+    <div className="scale-[0.58]">
+      <WorkoutAvatar animationType={ex.avatarAnimation} anchorPosition={ex.anchorPosition} exerciseName={ex.name} size="sm" isPaused />
+    </div>
+  </div>
+);
+
+interface Props {
+  workoutLogs?: WorkoutSessionLog[];
+  userProfile?: UserProfile;
+}
+
+/** Best set (reps, or seconds for holds) from each of the last 7 sessions that included the exercise. */
+const progressFor = (ex: Exercise, logs: WorkoutSessionLog[]) =>
+  logs
+    .filter(l => l.exercises.some(e => e.exerciseId === ex.id))
+    .slice(0, 7)
+    .reverse()
+    .map(l => {
+      const sets = l.exercises.find(e => e.exerciseId === ex.id)!.sets.filter(s => s.completed);
+      const best = Math.max(0, ...sets.map(s => (ex.isTimed ? s.seconds ?? s.reps : s.reps)));
+      return { date: new Date(l.date), best };
+    });
+
+export const ExerciseLibraryView: React.FC<Props> = ({ workoutLogs = [] }) => {
+  const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [showGear, setShowGear] = useState(false);
+  const [muscle, setMuscle] = useState('All');
+  const [gear, setGear] = useState<Gear>('All');
+  const [selected, setSelected] = useState<Exercise | null>(null);
+
+  const list = useMemo(() => EXERCISE_DATABASE.filter(ex => {
+    const q = query.trim().toLowerCase();
+    if (q && !ex.name.toLowerCase().includes(q) && !ex.targetMuscle.toLowerCase().includes(q)) return false;
+    if (muscle !== 'All' && ex.targetMuscle !== muscle) return false;
+    if (gear === 'Bands' && !ex.requiresBand) return false;
+    if (gear === 'Bar' && !ex.requiresBar) return false;
+    if (gear === 'None' && (ex.requiresBand || ex.requiresBar)) return false;
+    return true;
+  }), [query, muscle, gear]);
+
+  const muscles = MUSCLES.filter(m => m === 'All' || EXERCISE_DATABASE.some(e => e.targetMuscle === m));
 
   return (
-    <div className="space-y-4 pb-24 max-w-xl md:max-w-4xl lg:max-w-5xl landscape:max-w-5xl mx-auto animate-fadeIn">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl font-heading font-black text-white tracking-tight">
-          Exercise Library
-        </h2>
-        <p className="text-xs text-hy-text-2 mt-0.5">
-          Step-by-step posture guide and animated avatars
-        </p>
-      </div>
+    <div className="space-y-5 animate-fadeIn">
+      <header className="flex items-center gap-2 pt-2">
+        {searching ? (
+          <div className="flex-1 relative">
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-hy-text-3" />
+            <input
+              autoFocus
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search"
+              aria-label="Search exercises"
+              className="w-full h-11 pl-10 pr-4 rounded-full bg-hy-surface text-sm text-hy-text placeholder:text-hy-text-3 focus:outline-none focus:ring-1 focus:ring-hy-border"
+            />
+          </div>
+        ) : (
+          <h1 className="flex-1 text-2xl font-bold text-hy-text">Exercises</h1>
+        )}
+        <button type="button" onClick={() => { setSearching(!searching); if (searching) setQuery(''); }}
+          aria-label={searching ? 'Close search' : 'Search'}
+          className="w-11 h-11 rounded-full bg-hy-surface flex items-center justify-center text-hy-text-2">
+          {searching ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+        </button>
+        <button type="button" onClick={() => setShowGear(!showGear)} aria-label="Filter by equipment" aria-pressed={showGear}
+          className={`w-11 h-11 rounded-full flex items-center justify-center ${gear !== 'All' || showGear ? 'bg-hy-primary text-hy-on-primary' : 'bg-hy-surface text-hy-text-2'}`}>
+          <SlidersHorizontal className="w-5 h-5" />
+        </button>
+      </header>
 
-      {/* Search Input */}
-      <div className="relative">
-        <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-hy-text-3" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search pull-ups, squats, curls, chest press..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-hy-surface border border-hy-elevated text-white placeholder-slate-500 text-xs font-semibold focus:outline-none focus:border-hy-primary"
-        />
-      </div>
+      {showGear && (
+        <div className="flex gap-2 overflow-x-auto -mx-3 px-3 no-scrollbar">
+          {GEAR.map(g => (
+            <button key={g.id} type="button" onClick={() => setGear(g.id)}
+              className={`h-9 px-4 rounded-full text-xs font-semibold whitespace-nowrap border ${
+                gear === g.id ? 'border-hy-text text-hy-text' : 'border-hy-border text-hy-text-2'
+              }`}>
+              {g.label}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Equipment Filter Tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-        {[
-          { id: 'All', label: 'All Equipment' },
-          { id: 'Bands', label: '⚡ Resistance Bands' },
-          { id: 'Pull-Up Bar', label: '🏋️ Pull-Up Bar' },
-          { id: 'No Equipment', label: '🔥 No Equipment (Rowan Row)' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setSelectedEquipment(tab.id as any)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all border ${
-              selectedEquipment === tab.id
-                ? 'bg-gradient-to-r from-hy-primary to-hy-volt text-hy-on-primary border-transparent shadow-md shadow-hy-primary/20 scale-[1.02]'
-                : 'bg-hy-bg text-hy-text-2 border-hy-elevated hover:text-white hover:border-slate-700'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Muscle Filter Pills */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        {muscleGroups.map(m => (
-          <button
-            key={m}
-            onClick={() => setSelectedMuscle(m)}
-            className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-              selectedMuscle === m
-                ? 'bg-hy-primary text-hy-on-primary shadow-md shadow-hy-primary/30'
-                : 'bg-hy-surface text-hy-text-2 border border-hy-elevated hover:text-white'
-            }`}
-          >
+      <div className="flex gap-2 overflow-x-auto -mx-3 px-3 no-scrollbar">
+        {muscles.map(m => (
+          <button key={m} type="button" onClick={() => setMuscle(m)}
+            className={`h-10 px-4 rounded-full text-sm font-semibold whitespace-nowrap ${
+              muscle === m ? 'bg-hy-primary text-hy-on-primary' : 'bg-hy-surface text-hy-text-2'
+            }`}>
             {m}
           </button>
         ))}
       </div>
 
-      {/* Anchor Filters */}
-      <div className="flex items-center gap-1.5 overflow-x-auto text-xs pb-1">
-        <span className="text-hy-text-3 font-bold uppercase shrink-0">Anchor:</span>
-        {anchorPositions.map(a => (
-          <button
-            key={a}
-            onClick={() => setSelectedAnchor(a)}
-            className={`px-2.5 py-0.5 rounded-lg whitespace-nowrap font-bold transition-all ${
-              selectedAnchor === a
-                ? 'bg-hy-primary/20 text-hy-primary border border-hy-primary/40'
-                : 'bg-hy-surface text-hy-text-2 border border-hy-elevated'
-            }`}
-          >
-            {a === 'Bar' ? '⚓ Bar' : a}
-          </button>
+      <ul className="space-y-2">
+        {list.map(ex => (
+          <li key={ex.id}>
+            <button type="button" onClick={() => setSelected(ex)} className="w-full flex items-center gap-3 p-2 pr-3 rounded-3xl bg-hy-surface text-left">
+              <Thumb ex={ex} />
+              <span className="flex-1 min-w-0">
+                <span className="block text-sm font-semibold text-hy-text truncate">{ex.name}</span>
+                <span className="block text-xs text-hy-text-3 truncate">{ex.targetMuscle} · {gearLine(ex)}</span>
+              </span>
+              <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 ${LEVEL[ex.difficulty].cls}`}>{LEVEL[ex.difficulty].label}</span>
+            </button>
+          </li>
         ))}
-      </div>
+        {list.length === 0 && <li className="text-sm text-hy-text-3 text-center py-10">No matches</li>}
+      </ul>
 
-      {/* Exercises List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 landscape:grid-cols-2 gap-2.5">
-        {filteredExercises.map(ex => (
-          <div
-            key={ex.id}
-            onClick={() => setSelectedExercise(ex)}
-            className="hy-card-interactive p-3.5 cursor-pointer flex items-center justify-between gap-3 group"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              {/* Mini Animated Avatar Icon */}
-              <div className="w-14 h-14 rounded-2xl bg-hy-bg border border-hy-elevated shrink-0 overflow-hidden flex items-center justify-center group-hover:border-hy-primary/50 transition-colors">
-                <WorkoutAvatar
-                  animationType={ex.avatarAnimation}
-                  anchorPosition={ex.anchorPosition}
-                  exerciseName={ex.name}
-                  size="sm"
-                />
-              </div>
+      {selected && <ExerciseDetail ex={selected} logs={workoutLogs} onOpen={setSelected} onClose={() => setSelected(null)} />}
+    </div>
+  );
+};
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                  <span className="px-2 py-0.5 rounded text-xs font-black uppercase bg-hy-primary/15 text-hy-primary">
-                    {ex.targetMuscle}
-                  </span>
-                  {ex.requiresBand && ex.requiresBar ? (
-                    <span className="px-1.5 py-0.5 rounded text-xs font-black bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                      Bands + Bar
-                    </span>
-                  ) : ex.requiresBar ? (
-                    <span className="px-1.5 py-0.5 rounded text-xs font-black bg-hy-danger/20 text-hy-danger border border-hy-danger/30">
-                      Pull-Up Bar
-                    </span>
-                  ) : ex.requiresBand ? (
-                    <span className="px-1.5 py-0.5 rounded text-xs font-black bg-hy-volt/20 text-hy-volt border border-hy-volt/30">
-                      Bands
-                    </span>
-                  ) : (
-                    <span className="px-1.5 py-0.5 rounded text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      No Equipment
-                    </span>
-                  )}
-                  <span className="text-xs text-hy-text-2 font-semibold truncate">
-                    ⚓ {ex.anchorPosition}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-bold text-white group-hover:text-hy-primary transition-colors truncate">
-                    {ex.name}
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setVideoFor(ex);
-                    }}
-                    aria-label={`Watch ${ex.name} demo`}
-                    className="min-h-[32px] px-2 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all shrink-0 inline-flex items-center gap-1 text-xs font-bold"
-                  >
-                    <YoutubeIcon className="w-3.5 h-3.5 fill-current" />
-                    {getExerciseTimestampLabel(ex.id) && <span className="font-mono text-xs">{getExerciseTimestampLabel(ex.id)}</span>}
-                  </button>
-                </div>
-                <p className="text-xs text-hy-text-2 line-clamp-1 mt-0.5">
-                  {ex.instructions[0]}
-                </p>
-              </div>
-            </div>
+export const ExerciseDetail: React.FC<{
+  ex: Exercise; logs: WorkoutSessionLog[]; onOpen: (e: Exercise) => void; onClose: () => void;
+}> = ({ ex, logs, onOpen, onClose }) => {
+  const [playing, setPlaying] = useState(false);
+  const cue = getExerciseVideoCue(ex.id);
+  const source = cue ? VIDEO_SOURCES[cue.source] : undefined;
+  const progress = progressFor(ex, logs);
+  const peak = Math.max(1, ...progress.map(p => p.best));
+  const easier = ex.easierId ? getExerciseById(ex.easierId) : undefined;
+  const harder = ex.harderId ? getExerciseById(ex.harderId) : undefined;
+  const summary = ex.tips || ex.instructions[0];
 
-            <ChevronRight className="w-4 h-4 text-hy-text-3 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
-          </div>
-        ))}
-      </div>
-
-      <VideoDemoSheet exerciseId={videoFor?.id ?? null} exerciseName={videoFor?.name} onClose={() => setVideoFor(null)} />
-
-      {/* EXERCISE DETAIL MODAL */}
-      {selectedExercise && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-md landscape:max-w-3xl bg-hy-bg border border-hy-elevated rounded-3xl p-5 landscape:p-4 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex items-start justify-between pb-3 border-b border-hy-elevated">
-              <div>
-                <span className="text-xs font-black uppercase px-2 py-0.5 rounded bg-hy-primary/20 text-hy-primary">
-                  {selectedExercise.targetMuscle} • {selectedExercise.difficulty}
-                </span>
-                <h3 className="text-xl font-heading font-black text-white mt-1">
-                  {selectedExercise.name}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedExercise(null)}
-                aria-label="Close"
-                className="w-11 h-11 rounded-xl bg-hy-surface text-hy-text-2 hover:text-white flex items-center justify-center"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="py-4 space-y-4 landscape:space-y-0 landscape:grid landscape:grid-cols-12 landscape:gap-4 overflow-y-auto flex-1 pr-1">
-              {/* Left Column: Avatar & Quick Info */}
-              <div className="space-y-3 landscape:col-span-5">
-                {/* ANIMATED AVATAR HERO DISPLAY */}
-                <div className="rounded-2xl bg-hy-surface border border-hy-elevated p-3 flex flex-col items-center justify-center">
-                  <WorkoutAvatar
-                    animationType={selectedExercise.avatarAnimation}
-                    anchorPosition={selectedExercise.anchorPosition}
-                    exerciseName={selectedExercise.name}
-                    bandColorHex="#6EA8FF"
-                    size="md"
-                  />
-                  <span className="text-xs text-hy-text-3 font-bold uppercase mt-1">
-                    Technique Demonstration
-                  </span>
-                </div>
-
-                {/* Verified demo clip (plays in-app) */}
-                <button
-                  type="button"
-                  onClick={() => setVideoFor(selectedExercise)}
-                  className="w-full flex items-center justify-between p-3 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/15 transition-all text-xs font-bold text-left"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <YoutubeIcon className="w-5 h-5 fill-current text-red-500 shrink-0" />
-                    <div className="min-w-0">
-                      <div className="text-xs uppercase text-red-400 font-black flex items-center gap-2">
-                        <span>{getExerciseVideoSource(selectedExercise.id) ? `${getExerciseVideoSource(selectedExercise.id)!.channel} • Video demo` : 'Search YouTube for a demo'}</span>
-                        {getExerciseTimestampLabel(selectedExercise.id) && (
-                          <span className="px-1.5 rounded bg-red-500 text-white font-mono text-xs">{getExerciseTimestampLabel(selectedExercise.id)}</span>
-                        )}
-                      </div>
-                      <div className="text-hy-text text-xs truncate">
-                        {getExerciseVideoCue(selectedExercise.id)
-                          ? `${getExerciseVideoCue(selectedExercise.id)!.match === 'exact' ? '' : 'Similar: '}${getExerciseVideoCue(selectedExercise.id)!.label}`
-                          : 'No verified clip yet: opens a YouTube search'}
-                      </div>
-                    </div>
-                  </div>
-                  <ExternalLink className="w-4 h-4 shrink-0 text-hy-text-2" />
+  return (
+    <div className="fixed inset-0 z-50 bg-hy-bg overflow-y-auto animate-fadeIn" role="dialog" aria-modal="true" aria-label={ex.name}>
+      <div className="max-w-xl mx-auto pb-16">
+        {/* Video / demo */}
+        <div className="relative w-full bg-hy-bg-2" style={{ paddingTop: '62%' }}>
+          {playing && source && cue ? (
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src={`https://www.youtube-nocookie.com/embed/${source.id}?start=${cue.start}&autoplay=1&playsinline=1&rel=0`}
+              title={`${ex.name} demo`}
+              allow="autoplay; encrypted-media; picture-in-picture"
+              referrerPolicy="strict-origin"
+              allowFullScreen
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <WorkoutAvatar animationType={ex.avatarAnimation} anchorPosition={ex.anchorPosition} exerciseName={ex.name} size="md" />
+              {source && (
+                <button type="button" onClick={() => setPlaying(true)}
+                  className="absolute bottom-4 right-4 h-11 px-4 rounded-full bg-hy-primary text-hy-on-primary text-sm font-bold">
+                  Play video
                 </button>
-
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-3 rounded-2xl bg-hy-surface border border-hy-elevated">
-                    <span className="text-xs uppercase font-bold text-hy-text-3 block">Band Type</span>
-                    <span className="text-white font-bold">{selectedExercise.bandType}</span>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-hy-surface border border-hy-elevated">
-                    <span className="text-xs uppercase font-bold text-hy-text-3 block">Anchor Setup</span>
-                    <span className="text-white font-bold">{selectedExercise.anchorPosition}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Instructions, Cues, Tips */}
-              <div className="space-y-3.5 landscape:col-span-7 overflow-y-auto landscape:max-h-[65vh] pr-1">
-                <div>
-                  <div className="text-xs font-black uppercase text-hy-text-2 mb-2">Instructions</div>
-                  <ol className="space-y-2">
-                    {selectedExercise.instructions.map((step, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5 text-sm text-hy-text">
-                        <span className="w-5 h-5 rounded-full bg-hy-primary/15 text-hy-primary font-mono text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                          {idx + 1}
-                        </span>
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-hy-surface border border-hy-elevated space-y-2">
-                  <div className="text-xs font-bold text-hy-success flex items-center gap-1.5">
-                    <Shield className="w-4 h-4" /> Form Cues
-                  </div>
-                  <ul className="space-y-1 text-sm text-hy-text">
-                    {selectedExercise.formCues.map((cue, idx) => (
-                      <li key={idx} className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-hy-success shrink-0" />
-                        <span>{cue}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {selectedExercise.commonMistakes?.length ? (
-                  <div className="p-3.5 rounded-2xl bg-hy-surface border border-hy-elevated space-y-2">
-                    <div className="text-xs font-bold text-hy-danger">Common mistakes</div>
-                    <ul className="space-y-1 text-sm text-hy-text list-disc list-inside">
-                      {selectedExercise.commonMistakes.map((m, idx) => (
-                        <li key={idx}>{m}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-
-                {(selectedExercise.easierId || selectedExercise.harderId) && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      ['Easier', selectedExercise.easierId],
-                      ['Harder', selectedExercise.harderId],
-                    ].map(([label, id]) => {
-                      const target = id ? getExerciseById(id) : undefined;
-                      return target ? (
-                        <button
-                          key={label}
-                          type="button"
-                          onClick={() => setSelectedExercise(target)}
-                          className="min-h-[56px] p-3 rounded-2xl bg-hy-surface border border-hy-elevated text-left"
-                        >
-                          <span className="block text-xs font-bold uppercase text-hy-text-3">{label}</span>
-                          <span className="block text-sm font-bold text-hy-text">{target.name}</span>
-                        </button>
-                      ) : (
-                        <div key={label} />
-                      );
-                    })}
-                  </div>
-                )}
-
-                {selectedExercise.tips && (
-                  <div className="p-3 rounded-2xl bg-hy-primary/10 text-xs text-hy-primary font-medium border border-hy-primary/20">
-                    💡 {selectedExercise.tips}
-                  </div>
-                )}
-              </div>
+              )}
             </div>
-
-            <div className="pt-3 border-t border-hy-elevated">
-              <button
-                onClick={() => setSelectedExercise(null)}
-                className="w-full py-3 rounded-2xl bg-hy-primary text-hy-on-primary text-xs font-bold shadow-lg"
-              >
-                Close
-              </button>
-            </div>
-          </div>
+          )}
+          <button type="button" onClick={onClose} aria-label="Back"
+            className="absolute top-4 left-4 w-11 h-11 rounded-full bg-black/60 backdrop-blur flex items-center justify-center text-white">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
         </div>
-      )}
+
+        <div className="px-4 pt-5 space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-hy-text">{ex.name}</h1>
+            <div className="text-sm text-hy-text-3 mt-1">{gearLine(ex)}</div>
+            {summary && <p className="text-sm text-hy-text-2 mt-3">{summary}</p>}
+          </div>
+
+          <div className="flex gap-2 flex-wrap text-xs">
+            <span className="px-3 py-1.5 rounded-full bg-hy-surface text-hy-text-2">{ex.targetMuscle}</span>
+            <span className={`px-3 py-1.5 rounded-full ${LEVEL[ex.difficulty].cls}`}>{LEVEL[ex.difficulty].label}</span>
+            {ex.tempo && <span className="px-3 py-1.5 rounded-full bg-hy-surface text-hy-text-2" title={describeTempo(ex.tempo)}>Tempo {ex.tempo}</span>}
+          </div>
+
+          <section className="rounded-3xl bg-hy-surface p-4">
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-base font-bold text-hy-text">My progress</h2>
+              {progress.length > 0 && <span className="text-xs text-hy-text-3">best {ex.isTimed ? 'hold' : 'set'}</span>}
+            </div>
+            {progress.length ? (
+              <div className="flex items-end gap-2 h-32 mt-4" aria-label="Best set in recent sessions">
+                {progress.map((p, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                    <span className="text-xs text-hy-text-2">{p.best}{ex.isTimed ? 's' : ''}</span>
+                    <div className="flex-1 w-full flex items-end">
+                      <div className={`w-full rounded-xl ${i === progress.length - 1 ? 'bg-hy-primary' : 'bg-hy-elevated'}`}
+                        style={{ height: `${Math.max(8, (p.best / peak) * 100)}%` }} />
+                    </div>
+                    <span className="text-[10px] text-hy-text-3">{p.date.getDate()}/{p.date.getMonth() + 1}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-hy-text-3 mt-2">Log this exercise to see your progress.</p>
+            )}
+          </section>
+
+          <section>
+            <h2 className="text-base font-bold text-hy-text mb-3">How to</h2>
+            <ol className="space-y-2.5">
+              {ex.instructions.map((step, i) => (
+                <li key={i} className="flex gap-3 text-sm text-hy-text-2">
+                  <span className="w-6 h-6 rounded-full bg-hy-surface text-hy-text text-xs flex items-center justify-center shrink-0">{i + 1}</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          {ex.commonMistakes?.length ? (
+            <section>
+              <h2 className="text-base font-bold text-hy-text mb-2">Avoid</h2>
+              <ul className="space-y-1.5 text-sm text-hy-text-2">
+                {ex.commonMistakes.map((m, i) => <li key={i}>– {m}</li>)}
+              </ul>
+            </section>
+          ) : null}
+
+          {(easier || harder) && (
+            <div className="grid grid-cols-2 gap-2">
+              {[['Easier', easier], ['Harder', harder]].map(([label, target]) => target ? (
+                <button key={label as string} type="button" onClick={() => onOpen(target as Exercise)}
+                  className="p-3 rounded-2xl bg-hy-surface text-left">
+                  <span className="block text-xs text-hy-text-3">{label as string}</span>
+                  <span className="block text-sm font-semibold text-hy-text">{(target as Exercise).name}</span>
+                </button>
+              ) : <div key={label as string} />)}
+            </div>
+          )}
+
+          {!source && (
+            <a href={getExerciseYoutubeUrl(ex.id, ex.name)} target="_blank" rel="noopener noreferrer"
+              className="h-12 rounded-full bg-hy-surface text-hy-text text-sm font-semibold flex items-center justify-center gap-2">
+              <ExternalLink className="w-4 h-4" /> Find a video
+            </a>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

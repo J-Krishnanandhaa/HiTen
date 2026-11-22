@@ -1,7 +1,6 @@
 import React from 'react';
-import { Dumbbell, BookOpen, BarChart3, User, Volume2, VolumeX, Flame, Palette } from 'lucide-react';
+import { Dumbbell, BookOpen, BarChart3, User, Volume2, VolumeX, Flame } from 'lucide-react';
 import { sound } from '../utils/soundEffects';
-import { ThemeSwitcherModal } from './Common/ThemeSwitcherModal';
 
 export type ActiveTab = 'training' | 'exercises' | 'report' | 'me';
 
@@ -22,7 +21,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   streakWeeks,
 }) => {
   const [soundOn, setSoundOn] = React.useState(() => sound.isEnabled());
-  const [themeModalOpen, setThemeModalOpen] = React.useState(false);
 
   React.useEffect(() => {
     const handleSoundChange = (e: Event) => {
@@ -62,16 +60,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Theme Palette Switcher */}
-            <button
-              onClick={() => setThemeModalOpen(true)}
-              className="w-11 h-11 landscape:w-9 landscape:h-9 flex items-center justify-center rounded-lg border bg-hy-surface hover:bg-hy-surface-hover text-hy-primary border-hy-border hover:border-hy-primary/40 transition-all shadow-sm"
-              title="Change Theme & Color Palette"
-              aria-label="Change Theme & Color Palette"
-            >
-              <Palette className="w-3.5 h-3.5 landscape:w-3 landscape:h-3" />
-            </button>
-
             {/* Sound Toggle */}
             <button
               onClick={toggleSound}
@@ -109,7 +97,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
-      <ThemeSwitcherModal isOpen={themeModalOpen} onClose={() => setThemeModalOpen(false)} />
 
       {/* Floating Resume Banner on Mobile */}
       {isWorkoutActive && (

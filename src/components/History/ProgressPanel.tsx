@@ -49,8 +49,8 @@ export const ProgressPanel: React.FC<ProgressPanelProps> = ({ workoutLogs, userP
       </section>
 
       <section className="hy-card p-4" aria-labelledby="sets-heading">
-        <h3 id="sets-heading" className="text-sm font-black uppercase text-hy-text-2 mb-1">Sets per muscle this week</h3>
-        <p className="text-xs text-hy-text-2 mb-3">Shaded band: 12–20 sets, a good weekly target for growth.</p>
+        <h3 id="sets-heading" className="text-sm font-black uppercase text-hy-text-2 mb-1">Weekly sets</h3>
+        <p className="text-xs text-hy-text-3 mb-3">Target 12–20</p>
         <div className="space-y-1.5">
           {TRACKED_MUSCLES.map(m => {
             const v = Math.round(sets[m] * 10) / 10;

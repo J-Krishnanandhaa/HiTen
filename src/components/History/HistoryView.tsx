@@ -2,18 +2,14 @@ import React, { useState } from 'react';
 import { 
   Clock, Flame, Trophy, Calendar, ChevronDown, 
   ChevronUp, Scale, Activity, Plus, ChevronLeft, 
-  ChevronRight, Dumbbell, ArrowRight, Zap, TrendingUp, CheckCircle2
+  ChevronRight, Dumbbell, ArrowRight, TrendingUp
 } from 'lucide-react';
 import { WorkoutSessionLog, UserProfile } from '../../types';
 import { EXERCISE_DATABASE } from '../../data/exerciseDatabase';
 import { getTodayDateString } from '../../utils/storage';
 import { toDisplay } from '../../utils/bands';
 import { ProgressPanel } from './ProgressPanel';
-import { 
-  calculateAverageCaloriesPerWorkout, 
-  calculateAverageCaloriesPerMinute,
-  calculateWeeklyCalorieBurn 
-} from '../../utils/nutritionMath';
+import { calculateWeeklyCalorieBurn } from '../../utils/nutritionMath';
 
 interface HistoryViewProps {
   workoutLogs: WorkoutSessionLog[];
@@ -45,8 +41,6 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   const totalWorkouts = workoutLogs.length;
   const totalCalories = workoutLogs.reduce((acc, l) => acc + (l.caloriesBurned || 0), 0);
   const totalMinutes = Math.round(workoutLogs.reduce((acc, l) => acc + l.durationSeconds, 0) / 60);
-  const avgCaloriesPerWorkout = calculateAverageCaloriesPerWorkout(workoutLogs);
-  const avgCaloriesPerMinute = calculateAverageCaloriesPerMinute(workoutLogs);
 
   // Weekly Calorie Burn Stats (Mon - Sun)
   const weeklyStats = calculateWeeklyCalorieBurn(workoutLogs);
@@ -72,7 +66,6 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
     bmiColor = '#F87171';
   }
 
-  const needlePercent = Math.min(100, Math.max(0, ((bmiNum - 15) / (35 - 15)) * 100));
 
   const toggleExpand = (id: string) => {
     setExpandedLogId(prev => prev === id ? null : id);
@@ -107,10 +100,6 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
   // Selected Day Details calculation
   const selectedDayWorkouts = workoutLogs.filter(log => log.date.startsWith(selectedDate));
-  const dayWorkoutCaloriesBurned = selectedDayWorkouts.reduce((acc, log) => acc + (log.caloriesBurned || 0), 0);
-  const dayWorkoutSeconds = selectedDayWorkouts.reduce((acc, log) => acc + (log.durationSeconds || 0), 0);
-  const dayWorkoutMinutes = Math.round(dayWorkoutSeconds / 60);
-  const dayTotalVolumeLbs = selectedDayWorkouts.reduce((acc, log) => acc + (log.totalVolumeLbs || 0), 0);
 
   // Formatted date string for selected inspector header
   const parsedDate = new Date(selectedDate + 'T00:00:00');
@@ -123,13 +112,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
   return (
     <div className="space-y-5 animate-fadeIn">
+      <h1 className="text-2xl font-bold text-hy-text pt-2">Progress</h1>
+
       {workoutLogs.length === 0 && (
-        <div className="hy-card p-6 text-center space-y-3">
-          <h2 className="text-xl font-heading font-black">Your progress shows up here</h2>
-          <p className="text-sm text-hy-text-2">Finish your first workout to see personal bests, sets per muscle and your history.</p>
+        <div className="rounded-3xl bg-hy-surface p-6 text-center space-y-3">
+          <p className="text-sm text-hy-text-2">Finish a workout to see your progress.</p>
           {onNavigateToTraining && (
             <button type="button" onClick={onNavigateToTraining} className="min-h-[48px] px-6 rounded-2xl bg-hy-primary text-hy-on-primary font-black">
-              Start today's workout
+              Start a workout
             </button>
           )}
         </div>
@@ -139,62 +129,17 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       <ProgressPanel workoutLogs={workoutLogs} userProfile={userProfile} />
 
       {/* Totals (calories are estimates) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-        {/* Total Workouts */}
-        <div className="hy-card p-3 sm:p-4 text-center border-t-2 border-t-hy-primary flex flex-col justify-between">
-          <div className="text-xs sm:text-xs font-black uppercase tracking-wider text-hy-text-2 mb-0.5">
-            Workouts
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: 'Workouts', value: totalWorkouts.toLocaleString() },
+          { label: 'Minutes', value: totalMinutes.toLocaleString() },
+          { label: 'kcal (est.)', value: totalCalories.toLocaleString() },
+        ].map(t => (
+          <div key={t.label} className="rounded-3xl bg-hy-surface p-4 text-center">
+            <div className="text-2xl font-bold text-hy-text">{t.value}</div>
+            <div className="text-xs text-hy-text-3 mt-0.5">{t.label}</div>
           </div>
-          <div className="font-heading font-black text-2xl sm:text-3xl text-white my-0.5">
-            {totalWorkouts}
-          </div>
-          <div className="text-xs text-hy-primary font-bold flex items-center justify-center gap-1">
-            <Trophy className="w-3 h-3" />
-            <span>Completed</span>
-          </div>
-        </div>
-
-        {/* Total Calories Burned */}
-        <div className="hy-card p-3 sm:p-4 text-center border-t-2 border-t-hy-orange flex flex-col justify-between">
-          <div className="text-xs sm:text-xs font-black uppercase tracking-wider text-hy-text-2 mb-0.5">
-            Calories
-          </div>
-          <div className="font-heading font-black text-2xl sm:text-3xl text-hy-orange my-0.5">
-            {totalCalories.toLocaleString()}
-          </div>
-          <div className="text-xs text-hy-text-2 font-bold flex items-center justify-center gap-1">
-            <Flame className="w-3 h-3 text-hy-orange fill-hy-orange" />
-            <span>kcal (est.)</span>
-          </div>
-        </div>
-
-        {/* Total Minutes */}
-        <div className="hy-card p-3 sm:p-4 text-center border-t-2 border-t-hy-volt flex flex-col justify-between">
-          <div className="text-xs sm:text-xs font-black uppercase tracking-wider text-hy-text-2 mb-0.5">
-            Minutes
-          </div>
-          <div className="font-heading font-black text-2xl sm:text-3xl text-white my-0.5">
-            {totalMinutes}
-          </div>
-          <div className="text-xs text-hy-volt font-bold flex items-center justify-center gap-1">
-            <Clock className="w-3 h-3" />
-            <span>Time active</span>
-          </div>
-        </div>
-
-        {/* Average Calorie Burn */}
-        <div className="hy-card p-3 sm:p-4 text-center border-t-2 border-t-hy-success flex flex-col justify-between">
-          <div className="text-xs sm:text-xs font-black uppercase tracking-wider text-hy-text-2 mb-0.5">
-            Avg Burn
-          </div>
-          <div className="font-heading font-black text-2xl sm:text-3xl text-hy-success my-0.5">
-            {avgCaloriesPerWorkout}
-          </div>
-          <div className="text-xs text-hy-text-2 font-bold flex items-center justify-center gap-1">
-            <Zap className="w-3 h-3 text-hy-success" />
-            <span>{avgCaloriesPerMinute > 0 ? `~${avgCaloriesPerMinute} kcal/min` : 'kcal / workout'}</span>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* 2. WEEKLY CALORIE BURN ACTIVITY BAR CHART */}
@@ -203,13 +148,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-hy-orange" />
             <h3 className="text-xs sm:text-sm font-heading font-black text-white uppercase tracking-wider">
-              This Week's Calorie Burn
+              This week
             </h3>
           </div>
           <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
             <span className="text-hy-orange font-black">{weeklyStats.weekTotal.toLocaleString()} kcal</span>
-            <span className="text-hy-text-3">•</span>
-            <span className="text-hy-text-2 text-xs">Avg {weeklyStats.dailyAverage} kcal/active day</span>
           </div>
         </div>
 
@@ -247,7 +190,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
                 {/* Day label */}
                 <span className={`text-xs sm:text-xs font-black ${
-                  day.isToday ? 'text-hy-orange' : 'text-hy-text-2'
+                  day.isToday 
+                    ? 'text-hy-orange' 
+                    : (idx === 5 || idx === 6)
+                    ? 'text-amber-400 font-extrabold'
+                    : 'text-hy-text-2'
                 }`}>
                   {day.shortDay}
                 </span>
@@ -268,7 +215,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           }`}
         >
           <Calendar className="w-4 h-4" />
-          <span>Workout Calendar</span>
+          <span>Calendar</span>
         </button>
 
         <button
@@ -280,7 +227,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           }`}
         >
           <Activity className="w-4 h-4" />
-          <span>All Workouts ({workoutLogs.length})</span>
+          <span>History</span>
         </button>
       </div>
 
@@ -329,8 +276,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               <span>Wed</span>
               <span>Thu</span>
               <span>Fri</span>
-              <span className="text-blue-400">Sat</span>
-              <span className="text-blue-400">Sun</span>
+              <span className="text-amber-400 font-black">Sat</span>
+              <span className="text-amber-400 font-black">Sun</span>
             </div>
 
             {/* Calendar Days Grid */}
@@ -346,6 +293,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
                 const isSelected = selectedDate === dateKey;
                 const isToday = todayStr === dateKey;
+                const dayCol = (firstDayOfWeek + idx) % 7;
+                const isWeekend = dayCol === 5 || dayCol === 6; // Sat (5) or Sun (6)
 
                 // Check workouts for this day
                 const dayWorkouts = workoutLogs.filter(log => log.date.startsWith(dateKey));
@@ -361,6 +310,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                         ? 'border-hy-primary bg-hy-primary/15 ring-2 ring-hy-primary/40 shadow-lg shadow-hy-primary/20 scale-[1.02]'
                         : isToday
                         ? 'border-hy-success/60 bg-hy-surface hover:bg-hy-elevated'
+                        : isWeekend
+                        ? 'border-amber-500/40 bg-amber-500/[0.08] hover:bg-amber-500/[0.14]'
                         : 'border-hy-elevated bg-hy-bg-2 hover:bg-hy-elevated'
                     }`}
                   >
@@ -371,6 +322,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                           ? 'text-hy-primary' 
                           : isToday 
                           ? 'text-hy-success' 
+                          : isWeekend
+                          ? 'text-amber-400 font-extrabold'
                           : 'text-slate-300'
                       }`}>
                         {dayNum}
@@ -396,32 +349,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               })}
             </div>
 
-            {/* Legend */}
-            <div className="flex items-center justify-center gap-5 text-xs font-bold text-hy-text-2 mt-4 pt-3 border-t border-hy-elevated">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-hy-orange/20 border border-hy-orange/50 flex items-center justify-center">
-                  <span className="w-1 h-1 rounded-full bg-hy-orange" />
-                </span>
-                <span>Workout Done (Calories Burnt)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-hy-success/20 border border-hy-success/50 flex items-center justify-center">
-                  <span className="w-1 h-1 rounded-full bg-hy-success" />
-                </span>
-                <span>Today</span>
-              </div>
-            </div>
           </div>
 
           {/* DAY DETAILS INSPECTOR CARD */}
-          <div className="hy-card p-5 sm:p-6 border-2 border-hy-primary/40 shadow-xl bg-gradient-to-b from-hy-surface to-hy-bg">
+          <div className="hy-card p-5 sm:p-6 ">
             
             {/* Inspector Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-hy-elevated">
               <div>
-                <div className="text-xs font-black uppercase tracking-wider text-hy-primary mb-0.5">
-                  Workout & Calorie Burn Inspector
-                </div>
                 <h2 className="text-xl sm:text-2xl font-heading font-black text-white">
                   {formattedSelectedDate}
                 </h2>
@@ -439,92 +374,12 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               )}
             </div>
 
-            {/* 4-Card Day Workout Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 my-4">
-              
-              {/* 1. Calories Burned */}
-              <div className="p-3.5 rounded-xl bg-hy-bg-2 border border-hy-elevated">
-                <div className="flex items-center justify-between text-xs font-black uppercase text-hy-text-2 mb-1">
-                  <span>Calories Burnt</span>
-                  <Flame className="w-3.5 h-3.5 text-hy-orange fill-hy-orange" />
-                </div>
-                <div className="font-heading font-black text-xl text-hy-orange">
-                  {dayWorkoutCaloriesBurned.toLocaleString()} <span className="text-xs font-normal text-hy-text-2">kcal</span>
-                </div>
-                <div className="text-xs text-hy-text-3 font-bold mt-0.5">
-                  {selectedDayWorkouts.length} workout{selectedDayWorkouts.length !== 1 ? 's' : ''} completed
-                </div>
-              </div>
-
-              {/* 2. Active Training Time */}
-              <div className="p-3.5 rounded-xl bg-hy-bg-2 border border-hy-elevated">
-                <div className="flex items-center justify-between text-xs font-black uppercase text-hy-text-2 mb-1">
-                  <span>Active Time</span>
-                  <Clock className="w-3.5 h-3.5 text-hy-volt" />
-                </div>
-                <div className="font-heading font-black text-xl text-white">
-                  {dayWorkoutMinutes} <span className="text-xs font-normal text-hy-text-2">mins</span>
-                </div>
-                <div className="text-xs text-hy-text-3 font-bold mt-0.5">
-                  {dayWorkoutSeconds > 0 ? `${dayWorkoutSeconds} total seconds` : 'No active timer'}
-                </div>
-              </div>
-
-              {/* 3. Total Resistance Volume */}
-              <div className="p-3.5 rounded-xl bg-hy-bg-2 border border-hy-elevated">
-                <div className="flex items-center justify-between text-xs font-black uppercase text-hy-text-2 mb-1">
-                  <span>Band Load</span>
-                  <Dumbbell className="w-3.5 h-3.5 text-hy-primary" />
-                </div>
-                <div className="font-heading font-black text-xl text-hy-primary">
-                  {toDisplay(dayTotalVolumeLbs, userProfile.unitSystem).toLocaleString()} <span className="text-xs font-normal text-hy-text-2">{userProfile.unitSystem}</span>
-                </div>
-                <div className="text-xs text-hy-text-3 font-bold mt-0.5">
-                  Total resistance moved
-                </div>
-              </div>
-
-              {/* 4. Burn Rate / Intensity */}
-              <div className="p-3.5 rounded-xl bg-hy-bg-2 border border-hy-elevated">
-                <div className="flex items-center justify-between text-xs font-black uppercase text-hy-text-2 mb-1">
-                  <span>Burn Rate</span>
-                  <Zap className="w-3.5 h-3.5 text-hy-success" />
-                </div>
-                <div className="font-heading font-black text-xl text-hy-success">
-                  {dayWorkoutMinutes > 0 ? (dayWorkoutCaloriesBurned / dayWorkoutMinutes).toFixed(1) : '0'} <span className="text-xs font-normal text-hy-text-2">kcal/min</span>
-                </div>
-                <div className="text-xs text-hy-text-3 font-bold mt-0.5">
-                  {dayWorkoutCaloriesBurned > 0 ? 'Optimal Progressive Load' : 'Rest day'}
-                </div>
-              </div>
-
-            </div>
-
             {/* Completed Workout Details for Selected Day */}
             <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-black uppercase tracking-wider text-hy-text-2 flex items-center gap-1.5">
-                <Dumbbell className="w-3.5 h-3.5 text-hy-primary" />
-                <span>Workouts Logged ({selectedDayWorkouts.length})</span>
-              </h4>
 
               {selectedDayWorkouts.length === 0 ? (
                 <div className="p-6 rounded-2xl bg-hy-bg-2 border border-hy-elevated text-center">
-                  <div className="w-10 h-10 rounded-full bg-hy-elevated text-hy-text-2 flex items-center justify-center mx-auto mb-2">
-                    <Calendar className="w-5 h-5 text-hy-text-2" />
-                  </div>
-                  <h5 className="text-sm font-bold text-white mb-1">Rest & Recovery Day</h5>
-                  <p className="text-xs text-hy-text-2 max-w-sm mx-auto mb-3">
-                    No workout recorded on this date. Rest days allow muscle tissues to rebuild and adapt to tension overload.
-                  </p>
-                  {onNavigateToTraining && (
-                    <button
-                      onClick={onNavigateToTraining}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-hy-primary text-hy-on-primary text-xs font-bold hover:bg-hy-primary-hover transition-all"
-                    >
-                      <Dumbbell className="w-3.5 h-3.5" />
-                      <span>Start Today's Workout</span>
-                    </button>
-                  )}
+                  <p className="text-sm text-hy-text-3">Rest day</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -594,7 +449,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               <div className="flex items-center gap-2">
                 <Scale className="w-4 h-4 text-hy-success" />
                 <h3 className="text-sm font-heading font-black text-white uppercase tracking-wider">
-                  Weight & Body Mass Index (BMI)
+                  Weight
                 </h3>
               </div>
 
@@ -606,13 +461,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 className="px-3 py-1 rounded-lg bg-hy-elevated hover:bg-hy-border text-white text-xs font-bold flex items-center gap-1 transition-all"
               >
                 <Plus className="w-3 h-3" />
-                <span>Log Weight</span>
+                <span>Log</span>
               </button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
               <div className="p-3 rounded-xl bg-hy-bg border border-hy-elevated">
-                <div className="text-xs font-bold text-hy-text-2 uppercase">Current Weight</div>
+                <div className="text-xs font-bold text-hy-text-2 uppercase">Weight</div>
                 <div className="text-xl font-heading font-black text-white mt-0.5">
                   {userProfile.weightKg} <span className="text-xs font-normal text-hy-text-2">kg</span>
                 </div>
@@ -626,29 +481,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               </div>
 
               <div className="p-3 rounded-xl bg-hy-bg border border-hy-elevated col-span-2 sm:col-span-1">
-                <div className="text-xs font-bold text-hy-text-2 uppercase">BMI Index</div>
+                <div className="text-xs font-bold text-hy-text-2 uppercase">BMI</div>
                 <div className="text-xl font-heading font-black mt-0.5" style={{ color: bmiColor }}>
                   {bmi} <span className="text-xs font-bold">({bmiCategory})</span>
                 </div>
               </div>
             </div>
 
-            {/* BMI Bar Gauge */}
-            <div className="space-y-1.5">
-              <div className="relative h-2.5 rounded-full bg-hy-bg border border-hy-elevated overflow-hidden flex">
-                <div className="h-full bg-hy-primary w-[20%]" title="Underweight (< 18.5)" />
-                <div className="h-full bg-hy-success w-[35%]" title="Normal (18.5 - 24.9)" />
-                <div className="h-full bg-hy-warning w-[25%]" title="Overweight (25 - 29.9)" />
-                <div className="h-full bg-hy-danger w-[20%]" title="Obese (≥ 30)" />
-              </div>
-
-              <div className="flex justify-between text-xs font-bold text-hy-text-3 px-0.5">
-                <span>15.0</span>
-                <span>18.5 (Normal)</span>
-                <span>25.0 (Overweight)</span>
-                <span>35.0+</span>
-              </div>
-            </div>
           </div>
 
         </div>
@@ -662,17 +501,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               <div className="w-16 h-16 rounded-full bg-hy-surface text-hy-text-3 flex items-center justify-center mx-auto mb-3">
                 <Trophy className="w-8 h-8 text-hy-text-3" />
               </div>
-              <h3 className="text-base font-bold text-white mb-1">No Workouts Recorded Yet</h3>
-              <p className="text-xs text-hy-text-2 max-w-sm mx-auto mb-4">
-                Complete your first workout in the Training tab to start tracking your calories burned, resistance volume, and personal records.
-              </p>
+              <p className="text-sm text-hy-text-2 mb-4">No workouts yet</p>
               {onNavigateToTraining && (
                 <button
                   onClick={onNavigateToTraining}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-hy-primary hover:bg-hy-primary-hover text-hy-on-primary text-xs font-bold shadow-lg shadow-hy-primary/30 transition-all"
                 >
                   <Dumbbell className="w-4 h-4" />
-                  <span>Go to Training</span>
+                  <span>Start a workout</span>
                 </button>
               )}
             </div>
@@ -779,7 +615,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-sm rounded-3xl bg-hy-surface border border-hy-elevated p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-heading font-black text-white">Log Today's Weight</h3>
+              <h3 className="text-lg font-heading font-black text-white">Body weight</h3>
               <button
                 onClick={() => setShowWeightModal(false)}
                 className="text-hy-text-2 hover:text-white text-xs font-bold"
@@ -788,9 +624,6 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               </button>
             </div>
 
-            <p className="text-xs text-hy-text-2">
-              Updating your body weight automatically recalibrates your calorie burn expenditure for all future workouts.
-            </p>
 
             <div className="flex items-center justify-center gap-3 py-3">
               <button

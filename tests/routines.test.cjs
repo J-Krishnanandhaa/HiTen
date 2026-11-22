@@ -73,3 +73,9 @@ test('equipment substitution never leaves an incompatible exercise', () => {
     }
   }
 });
+
+test('bodyweight and bar leg days train hamstrings', () => {
+  for (const r of PREBUILT_ROUTINES.filter(r => ['no-equipment', 'bar-only'].includes(r.equipmentCategory) && r.category === 'Legs')) {
+    assert.ok(r.exercises.some(e => db.getExerciseById(e.exerciseId).targetMuscle === 'Hamstrings'), r.id);
+  }
+});

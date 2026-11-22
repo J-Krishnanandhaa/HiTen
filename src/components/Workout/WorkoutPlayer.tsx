@@ -15,6 +15,9 @@ import { WorkoutAvatar } from '../Common/WorkoutAvatar';
 import { YoutubeIcon } from '../Common/YoutubeIcon';
 import { ConfirmSheet } from '../Common/ConfirmSheet';
 import { VideoDemoSheet } from '../Common/VideoDemoSheet';
+import { WARMUPS, COOLDOWN, resolveMoves, focusFor, finishersFor, Finisher, TimedMove, WARMUP_VIDEO, COOLDOWN_VIDEO } from '../../data/sessionBlocks';
+import { describeTempo } from '../../data/extraExercises';
+import { getEquipmentMode } from '../../utils/equipmentManager';
 
 interface WorkoutPlayerProps {
   routine: Routine;
@@ -24,14 +27,11 @@ interface WorkoutPlayerProps {
   onFinished: (log: WorkoutSessionLog) => void;
 }
 
-type Phase = 'warmup' | 'ready' | 'work' | 'rest';
+type Phase = 'warmup' | 'ready' | 'work' | 'rest' | 'done' | 'finisher' | 'cooldown';
 
 const READY_SECONDS = 10;
-const WARMUP_SECONDS = 180;
 const REST_EXTRA_KEY = 'hyten_rest_extra';
 
-/** Short warm-up shown before every session (clip: Rowan Row warm-up, 0:57–6:02). */
-const WARMUP_MOVES = ['Arm swings', 'Torso twists', 'Hip circles', 'Bodyweight good mornings', 'Air squats', 'Band pull-aparts (light band)'];
 
 const FALLBACK_EXERCISE: Exercise = {
   id: 'unknown',
@@ -118,6 +118,20 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
   const [prToast, setPrToast] = useState<string | null>(null);
   const [completedLog, setCompletedLog] = useState<WorkoutSessionLog | null>(null);
   const [restExtras, setRestExtras] = useState<Record<string, number>>(loadRestExtras);
+
+  // Warm-up / cool-down: timed moves stepped through one by one.
+  const gear = { bands: bandsOn, bar: userProfile.hasPullUpBar !== false };
+  const warmMoves = useMemo(() => resolveMoves(WARMUPS[focusFor(category)], gear), [category, gear.bands, gear.bar]);
+  const coolMoves = useMemo(() => resolveMoves(COOLDOWN, gear), [gear.bands, gear.bar]);
+  const [blockIndex, setBlockIndex] = useState(0);
+  const blockMoves: TimedMove[] = phase === 'cooldown' ? coolMoves : warmMoves;
+
+  // Optional conditioning finisher after the last set.
+  const finishers = useMemo(() => finishersFor(getEquipmentMode(userProfile)), [userProfile]);
+  const [finisher, setFinisher] = useState<Finisher | null>(null);
+  const [amrapRounds, setAmrapRounds] = useState(0);
+  const [finisherDone, setFinisherDone] = useState<{ f: Finisher; rounds: number } | null>(null);
+  const finalLogsRef = useRef<LoggedExercise[] | null>(null);
 
   const [sessionLogs, setSessionLogs] = useState<LoggedExercise[]>(() =>
     routine.exercises.map(re => ({
@@ -252,9 +266,22 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
       }
     }
 
-    if (phase === 'warmup' && secondsLeft === 0) {
-      sound.speak('Warm-up done.');
-      startPhase('ready', READY_SECONDS);
+    if ((phase === 'warmup' || phase === 'cooldown') && secondsLeft === 0) {
+      haptic(40);
+      nextBlockMove();
+    }
+
+    if (phase === 'finisher' && finisher) {
+      const total = finisher.minutes * 60;
+      if (finisher.kind === 'emom' && secondsLeft > 0 && secondsLeft < total && secondsLeft % 60 === 0) {
+        const minute = (total - secondsLeft) / 60;
+        const move = finisher.moves[minute % finisher.moves.length];
+        sound.playStartWhistle();
+        sound.speak(`${move.name}, ${move.reps}`);
+        haptic([60, 40, 60]);
+      }
+      if (secondsLeft <= 3 && secondsLeft > 0) sound.playTick();
+      if (secondsLeft === 0) endFinisher();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [secondsLeft, phase, isPaused, phaseEndsAt]);
@@ -264,6 +291,71 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
     if (phase === 'work' && step) sound.speak(`${exercise.name}. ${describeStep(step)}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, stepIndex]);
+
+  const startBlockMove = (index: number) => {
+    setBlockIndex(index);
+    const move = blockMoves[index];
+    sound.speak(move.name);
+    setPhaseEndsAt(Date.now() + move.seconds * 1000);
+    announcedRef.current = -1;
+  };
+
+  const nextBlockMove = () => {
+    if (blockIndex + 1 < blockMoves.length) {
+      startBlockMove(blockIndex + 1);
+    } else if (phase === 'warmup') {
+      sound.speak('Warm-up done.');
+      startPhase('ready', READY_SECONDS);
+    } else {
+      finishAndSave();
+    }
+  };
+
+  const startFinisher = (f: Finisher) => {
+    setFinisher(f);
+    setAmrapRounds(0);
+    sound.playStartWhistle();
+    const first = f.moves[0];
+    sound.speak(f.kind === 'emom' ? `${first.name}, ${first.reps}` : 'Go!');
+    startPhase('finisher', f.minutes * 60);
+  };
+
+  const endFinisher = () => {
+    if (finisher) setFinisherDone({ f: finisher, rounds: finisher.kind === 'amrap' ? amrapRounds : finisher.minutes });
+    sound.speak('Finisher done.');
+    setPhase('done');
+    setPhaseEndsAt(null);
+  };
+
+  const startCooldown = () => {
+    setPhase('cooldown');
+    setBlockIndex(0);
+    const move = coolMoves[0];
+    sound.speak(move.name);
+    setPhaseEndsAt(Date.now() + move.seconds * 1000);
+    announcedRef.current = -1;
+  };
+
+  /** Save the session, including any finisher, once the user leaves the done screen. */
+  const finishAndSave = () => {
+    const base = finalLogsRef.current ?? sessionLogs;
+    const extra: LoggedExercise[] = [];
+    if (finisherDone) {
+      const { f, rounds } = finisherDone;
+      f.moves.forEach((m, i) => {
+        const setsDone = f.kind === 'emom' ? Math.ceil((rounds - i) / f.moves.length) : rounds > 0 ? 1 : 0;
+        const reps = f.kind === 'emom' ? m.reps : m.reps * rounds;
+        if (setsDone > 0 && reps > 0) {
+          extra.push({
+            exerciseId: m.exerciseId,
+            exerciseName: `${m.name} (${f.title})`,
+            sets: Array.from({ length: setsDone }).map((_, j) => ({ setNumber: j + 1, reps, bandIds: [], totalResistanceLbs: 0, completed: true })),
+          });
+        }
+      });
+    }
+    finish([...base, ...extra], false);
+  };
 
   const togglePause = () => {
     if (isPaused) {
@@ -317,6 +409,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
         doneLogs.reduce((t, ex) => t + ex.sets.reduce((a, s) => a + (s.completed ? s.reps * s.totalResistanceLbs : 0), 0), 0)
       ),
       partial: partial || undefined,
+      notes: finisherDone ? `Finisher: ${finisherDone.f.title}${finisherDone.f.kind === 'amrap' ? ` · ${finisherDone.rounds} rounds` : ''}` : undefined,
     };
     saveWorkoutLog(log);
     setCompletedLog(log);
@@ -356,7 +449,10 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
     }
 
     if (stepIndex >= queue.length - 1) {
-      finish(updated, false);
+      finalLogsRef.current = updated;
+      sound.speak('All sets done.');
+      setPhase('done');
+      setPhaseEndsAt(null);
       return;
     }
 
@@ -469,7 +565,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
           >
             {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </button>
-          {(phase === 'work' || phase === 'rest') && (
+          {(phase === 'work' || phase === 'rest' || ((phase === 'finisher' || phase === 'warmup' || phase === 'cooldown') && !!phaseEndsAt)) && (
             <button
               type="button"
               onClick={togglePause}
@@ -481,49 +577,135 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
         </div>
       </div>
 
-      {/* 0. WARM-UP */}
-      {phase === 'warmup' && (
-        <div className="flex-1 max-w-md mx-auto w-full p-4 space-y-4">
-          <div className="text-center">
-            <div className="text-xs font-black uppercase tracking-widest text-hy-primary">Before you start</div>
-            <h2 className="text-2xl font-heading font-black mt-1">3-minute warm-up</h2>
-            <p className="text-sm text-hy-text-2 mt-1">About 30 seconds each. Easy pace, full range.</p>
+      {/* 0. WARM-UP and 5. COOL-DOWN: guided timed moves */}
+      {(phase === 'warmup' || phase === 'cooldown') && (
+        <div className="flex-1 max-w-md mx-auto w-full p-4 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-heading font-black">{phase === 'warmup' ? 'Warm-up' : 'Cool-down'}</h2>
+            <a href={phase === 'warmup' ? WARMUP_VIDEO : COOLDOWN_VIDEO} target="_blank" rel="noopener noreferrer" aria-label="Follow-along video" className="w-11 h-11 rounded-full bg-hy-surface border border-hy-border flex items-center justify-center">
+              <YoutubeIcon className="w-4 h-4 fill-current text-red-500" />
+            </a>
           </div>
-          {phaseEndsAt && (
-            <div className="flex justify-center">
-              <div className="relative flex items-center justify-center">
-                <Ring fraction={secondsLeft / WARMUP_SECONDS} size={160} stroke={10} />
-                <span className="absolute font-heading font-black text-4xl">{formatTime(secondsLeft)}</span>
+          <div className="flex flex-col items-center gap-2 py-2">
+            <div className="relative flex items-center justify-center">
+              <Ring fraction={phaseEndsAt ? secondsLeft / blockMoves[blockIndex].seconds : 1} size={180} stroke={10} />
+              <span className="absolute font-heading font-black text-5xl">{phaseEndsAt ? secondsLeft : blockMoves[blockIndex].seconds}</span>
+            </div>
+            <div className="text-lg font-bold text-center">{blockMoves[blockIndex].name}</div>
+            <p className="text-sm text-hy-text-2 text-center max-w-xs">{blockMoves[blockIndex].cue}</p>
+          </div>
+          <ol className="space-y-1.5" aria-label="Moves">
+            {blockMoves.map((m, i) => (
+              <li key={m.name} className={`flex items-center justify-between rounded-2xl px-4 min-h-[44px] text-sm ${i === blockIndex ? 'bg-hy-elevated text-hy-text font-bold' : i < blockIndex ? 'text-hy-text-3 line-through' : 'bg-hy-surface text-hy-text-2'}`}>
+                <span>{m.name}</span>
+                <span className="font-mono text-xs">{m.seconds}s</span>
+              </li>
+            ))}
+          </ol>
+          <div className="grid grid-cols-2 gap-2 mt-auto">
+            {!phaseEndsAt ? (
+              <button type="button" onClick={() => startBlockMove(blockIndex)} className="min-h-[56px] rounded-full bg-hy-primary text-hy-on-primary font-black">
+                Start
+              </button>
+            ) : (
+              <button type="button" onClick={nextBlockMove} className="min-h-[56px] rounded-full bg-hy-primary text-hy-on-primary font-black">
+                Next
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => (phase === 'warmup' ? startPhase('ready', READY_SECONDS) : finishAndSave())}
+              className="min-h-[56px] rounded-full bg-hy-surface border border-hy-border font-bold"
+            >
+              Skip
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 4. SESSION DONE: optional finisher and cool-down */}
+      {phase === 'done' && (
+        <div className="flex-1 max-w-md mx-auto w-full p-4 flex flex-col gap-4">
+          <div className="text-center py-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-hy-primary text-hy-on-primary flex items-center justify-center">
+              <Check className="w-8 h-8 stroke-[3]" />
+            </div>
+            <h2 className="text-2xl font-heading font-black mt-3">All sets done</h2>
+            <p className="text-sm text-hy-text-2 mt-1">{formatTime(elapsedSeconds)} · {completedCount} sets</p>
+          </div>
+          {!finisherDone && (
+            <div className="space-y-2">
+              <div className="text-xs font-bold uppercase tracking-widest text-hy-text-3 px-1">Finisher</div>
+              {finishers.map(f => (
+                <button key={f.kind} type="button" onClick={() => startFinisher(f)} className="w-full hy-card p-4 text-left flex items-center justify-between gap-3">
+                  <span className="min-w-0">
+                    <span className="block font-bold">{f.title}</span>
+                    <span className="block text-sm text-hy-text-2 truncate">{f.moves.map(m => `${m.reps} ${m.name.toLowerCase()}`).join(' · ')}</span>
+                  </span>
+                  <span className="text-xs font-mono text-hy-text-3 shrink-0">{f.minutes} min</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {finisherDone && (
+            <div className="hy-card p-4 text-sm">
+              <span className="font-bold">{finisherDone.f.title} done</span>
+              {finisherDone.f.kind === 'amrap' && <span className="text-hy-text-2"> · {finisherDone.rounds} rounds</span>}
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-2 mt-auto">
+            <button type="button" onClick={startCooldown} className="min-h-[56px] rounded-full bg-hy-surface border border-hy-border font-bold">
+              Cool-down
+            </button>
+            <button type="button" onClick={finishAndSave} className="min-h-[56px] rounded-full bg-hy-primary text-hy-on-primary font-black">
+              Finish
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 4b. FINISHER: EMOM or AMRAP timer */}
+      {phase === 'finisher' && finisher && (
+        <div className="flex-1 max-w-md mx-auto w-full p-4 flex flex-col items-center gap-4 text-center">
+          <div className="text-xs font-bold uppercase tracking-widest text-hy-text-3">{finisher.title}</div>
+          <div className="relative flex items-center justify-center">
+            <Ring fraction={secondsLeft / (finisher.minutes * 60)} size={200} stroke={12} />
+            <span className="absolute font-heading font-black text-5xl">{formatTime(secondsLeft)}</span>
+          </div>
+          {finisher.kind === 'emom' ? (
+            (() => {
+              const minute = Math.min(finisher.minutes - 1, Math.floor((finisher.minutes * 60 - secondsLeft) / 60));
+              const move = finisher.moves[minute % finisher.moves.length];
+              return (
+                <div>
+                  <div className="text-sm text-hy-text-2">Minute {minute + 1} of {finisher.minutes}</div>
+                  <div className="text-2xl font-black mt-1">{move.reps} {move.name}</div>
+                  <div className="text-sm text-hy-text-2 mt-1">Rest for the rest of the minute</div>
+                </div>
+              );
+            })()
+          ) : (
+            <div className="w-full space-y-3">
+              <ul className="hy-card p-4 text-left space-y-1.5 text-sm">
+                {finisher.moves.map(m => (
+                  <li key={m.exerciseId} className="flex justify-between">
+                    <span>{m.name}</span>
+                    <span className="font-mono text-hy-text-2">{m.reps}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center justify-center gap-4">
+                <span className="text-4xl font-black font-heading" aria-live="polite">{amrapRounds}</span>
+                <span className="text-sm text-hy-text-2">rounds</span>
+                <button type="button" onClick={() => { setAmrapRounds(r => r + 1); haptic(30); }} aria-label="Add a round" className="w-14 h-14 rounded-full bg-hy-primary text-hy-on-primary flex items-center justify-center">
+                  <Plus className="w-6 h-6" />
+                </button>
               </div>
             </div>
           )}
-          <ol className="hy-card p-4 space-y-2 list-decimal list-inside text-sm">
-            {WARMUP_MOVES.map(m => (
-              <li key={m}>{m}</li>
-            ))}
-          </ol>
-          <a
-            href="https://youtu.be/cDq-nFmD0rI?t=57"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="min-h-[44px] rounded-2xl bg-hy-surface border border-hy-border text-sm font-bold flex items-center justify-center gap-2"
-          >
-            <YoutubeIcon className="w-4 h-4 fill-current text-red-500" /> Follow a warm-up video
-          </a>
-          <div className="grid grid-cols-2 gap-2">
-            {!phaseEndsAt ? (
-              <button type="button" onClick={() => startPhase('warmup', WARMUP_SECONDS)} className="min-h-[52px] rounded-2xl bg-hy-primary text-hy-on-primary font-black">
-                Start timer
-              </button>
-            ) : (
-              <button type="button" onClick={() => startPhase('ready', READY_SECONDS)} className="min-h-[52px] rounded-2xl bg-hy-primary text-hy-on-primary font-black">
-                I'm warm
-              </button>
-            )}
-            <button type="button" onClick={() => startPhase('ready', READY_SECONDS)} className="min-h-[52px] rounded-2xl bg-hy-elevated border border-hy-border font-bold">
-              Skip warm-up
-            </button>
-          </div>
+          <button type="button" onClick={endFinisher} className="mt-auto min-h-[48px] px-6 rounded-full bg-hy-surface border border-hy-border font-bold">
+            End finisher
+          </button>
         </div>
       )}
 
@@ -628,7 +810,10 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
                 </button>
               </div>
               <div className="text-sm text-hy-text-2 mt-0.5">
-                {exercise.targetMuscle} · ⚓ {exercise.anchorPosition}
+                {exercise.targetMuscle}
+                {(routineEx?.tempo || exercise.tempo) && (
+                  <span title={describeTempo(routineEx?.tempo || exercise.tempo || '')}> · Tempo {routineEx?.tempo || exercise.tempo}</span>
+                )}
               </div>
 
               {showTips && (
