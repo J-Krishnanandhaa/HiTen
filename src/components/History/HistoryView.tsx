@@ -34,7 +34,6 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
   const [showWeightModal, setShowWeightModal] = useState(false);
   useBackClose(showWeightModal, () => setShowWeightModal(false));
-  useBackClose(!!deletingLogId, () => setDeletingLogId(null));
   const [inputWeight, setInputWeight] = useState(userProfile.weightKg);
 
   // Calendar State: Defaults to current month and today's date

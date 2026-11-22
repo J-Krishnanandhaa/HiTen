@@ -7,7 +7,7 @@ import { EXERCISE_DATABASE, getExerciseById, getExerciseTimestampLabel } from '.
 import { EXERCISE_SUBSTITUTIONS, isExerciseCompatible } from '../../utils/equipmentManager';
 import { sound } from '../../utils/soundEffects';
 import { estimateWorkoutCalories, sessionIntensityFor } from '../../utils/nutritionMath';
-import { saveWorkoutLog } from '../../utils/storage';
+import { saveWorkoutLog, deleteWorkoutLog } from '../../utils/storage';
 import { buildSetQueue, describeStep, QueueStep } from '../../utils/sessionQueue';
 import { getPreviousPerformance, suggestNext, bestSetScore, setScore, repRange, Suggestion } from '../../utils/progression';
 import { stackLoadLbs, toDisplay, bandRangeLabel, bandsByLoad } from '../../utils/bands';
@@ -117,9 +117,12 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
   const [videoFor, setVideoFor] = useState<Exercise | null>(null);
   const [showSwap, setShowSwap] = useState(false);
   const [confirmQuit, setConfirmQuit] = useState(false);
-  // Back during a workout asks before ending it (never drops the session silently).
-  useBackClose(!confirmQuit && phase !== 'done', () => setConfirmQuit(true));
-  useBackClose(phase === 'done', () => finishAndSave());
+  const isPostWorkout = phase === 'done' || phase === 'finisher' || phase === 'cooldown';
+  // Back during active sets asks before ending it (never drops the session silently).
+  // Post-workout back returns cleanly: finisher back ends finisher; cool-down/done back saves cleanly.
+  useBackClose(!confirmQuit && !isPostWorkout, () => setConfirmQuit(true));
+  useBackClose(phase === 'finisher', () => endFinisher());
+  useBackClose(phase === 'cooldown' || phase === 'done', () => finishAndSave());
   useBackClose(showTips, () => setShowTips(false));
   useBackClose(showSwap, () => setShowSwap(false));
   const [prToast, setPrToast] = useState<string | null>(null);
@@ -535,12 +538,17 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
         secondaryLabel={completedCount ? 'Save what I did' : undefined}
         onSecondary={() => {
           setConfirmQuit(false);
-          finish(sessionLogs, true);
+          const isComplete = !!finalLogsRef.current;
+          finish(sessionLogs, !isComplete);
         }}
         confirmLabel="Discard workout"
         destructive
         onConfirm={() => {
           setConfirmQuit(false);
+          if (savedLogIdRef.current) {
+            deleteWorkoutLog(savedLogIdRef.current);
+            savedLogIdRef.current = null;
+          }
           onExit();
         }}
         cancelLabel="Keep going"
@@ -560,7 +568,9 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
           <button 
             type="button" 
             onClick={() => {
-              if (phase === 'done') {
+              if (phase === 'finisher') {
+                endFinisher();
+              } else if (phase === 'cooldown' || phase === 'done') {
                 finishAndSave();
               } else {
                 setConfirmQuit(true);

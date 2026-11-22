@@ -50,9 +50,8 @@ export const App: React.FC = () => {
   };
 
   // Sync workout finish
-  const handleWorkoutFinished = (newLog: WorkoutSessionLog) => {
-    const updated = [newLog, ...workoutLogs];
-    setWorkoutLogs(updated);
+  const handleWorkoutFinished = (_newLog: WorkoutSessionLog) => {
+    setWorkoutLogs(loadWorkoutLogs());
     setActiveWorkoutRoutine(null);
     setActiveTab('report');
 
@@ -126,7 +125,10 @@ export const App: React.FC = () => {
           routine={activeWorkoutRoutine}
           userProfile={userProfile}
           workoutLogs={workoutLogs}
-          onExit={() => setActiveWorkoutRoutine(null)}
+          onExit={() => {
+            setWorkoutLogs(loadWorkoutLogs());
+            setActiveWorkoutRoutine(null);
+          }}
           onFinished={handleWorkoutFinished}
         />
       )}
