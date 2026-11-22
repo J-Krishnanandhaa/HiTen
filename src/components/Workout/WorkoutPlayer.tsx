@@ -799,7 +799,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
               </div>
 
               <div className="my-1 flex items-center justify-center">
-                <WorkoutAvatar animationType={exercise.avatarAnimation} anchorPosition={exercise.anchorPosition} exerciseName={exercise.name} bandColorHex={bandColor} size="md" isPaused={isPaused} />
+                <WorkoutAvatar animationType={exercise.avatarAnimation} anchorPosition={exercise.anchorPosition} exerciseName={exercise.name} bandColorHex={bandColor} size="lg" isPaused={isPaused} />
               </div>
 
               <div className="flex items-center justify-center gap-2">

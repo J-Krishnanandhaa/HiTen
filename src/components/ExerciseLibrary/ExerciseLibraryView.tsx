@@ -160,7 +160,7 @@ export const ExerciseDetail: React.FC<{
     <div className="fixed inset-0 z-50 bg-hy-bg overflow-y-auto animate-fadeIn" role="dialog" aria-modal="true" aria-label={ex.name}>
       <div className="max-w-xl mx-auto pb-16">
         {/* Video / demo */}
-        <div className="relative w-full bg-hy-bg-2" style={{ paddingTop: '62%' }}>
+        <div className="relative w-full bg-hy-bg-2" style={{ paddingTop: '72%' }}>
           {playing && source && cue ? (
             <iframe
               className="absolute inset-0 w-full h-full"
@@ -172,7 +172,7 @@ export const ExerciseDetail: React.FC<{
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <WorkoutAvatar animationType={ex.avatarAnimation} anchorPosition={ex.anchorPosition} exerciseName={ex.name} size="md" />
+              <WorkoutAvatar animationType={ex.avatarAnimation} anchorPosition={ex.anchorPosition} exerciseName={ex.name} size="lg" />
               {source && (
                 <button type="button" onClick={() => setPlaying(true)}
                   className="absolute bottom-4 right-4 h-11 px-4 rounded-full bg-hy-primary text-hy-on-primary text-sm font-bold">
