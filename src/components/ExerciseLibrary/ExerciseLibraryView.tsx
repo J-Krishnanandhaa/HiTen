@@ -71,7 +71,7 @@ export const ExerciseLibraryView: React.FC<Props> = ({ workoutLogs = [] }) => {
   const muscles = MUSCLES.filter(m => m === 'All' || EXERCISE_DATABASE.some(e => e.targetMuscle === m));
 
   return (
-    <div className="space-y-5 pb-28 animate-fadeIn">
+    <div className="space-y-5 animate-fadeIn">
       <header className="flex items-center gap-2 pt-2">
         {searching ? (
           <div className="flex-1 relative">
@@ -144,7 +144,7 @@ export const ExerciseLibraryView: React.FC<Props> = ({ workoutLogs = [] }) => {
   );
 };
 
-const ExerciseDetail: React.FC<{
+export const ExerciseDetail: React.FC<{
   ex: Exercise; logs: WorkoutSessionLog[]; onOpen: (e: Exercise) => void; onClose: () => void;
 }> = ({ ex, logs, onOpen, onClose }) => {
   const [playing, setPlaying] = useState(false);

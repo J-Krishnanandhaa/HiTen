@@ -111,7 +111,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   });
 
   return (
-    <div className="space-y-5 pb-28 animate-fadeIn">
+    <div className="space-y-5 animate-fadeIn">
       <h1 className="text-2xl font-bold text-hy-text pt-2">Progress</h1>
 
       {workoutLogs.length === 0 && (

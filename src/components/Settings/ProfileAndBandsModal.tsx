@@ -150,7 +150,7 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
 
 
   return (
-    <div className="space-y-5 pb-28 max-w-xl md:max-w-4xl lg:max-w-5xl landscape:max-w-5xl mx-auto animate-fadeIn">
+    <div className="space-y-5 pb-24 max-w-xl md:max-w-4xl lg:max-w-5xl landscape:max-w-5xl mx-auto animate-fadeIn">
       <ConfirmSheet
         open={confirmReset}
         title="Reset everything?"
