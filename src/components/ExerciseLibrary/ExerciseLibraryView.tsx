@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
+import { useBackClose } from '../../utils/backStack';
 import { Search, SlidersHorizontal, ArrowLeft, X, ExternalLink } from 'lucide-react';
 import { Exercise, UserProfile, WorkoutSessionLog } from '../../types';
 import {
   EXERCISE_DATABASE, getExerciseById, getExerciseVideoCue, getExerciseYoutubeUrl, VIDEO_SOURCES,
 } from '../../data/exerciseDatabase';
 import { describeTempo } from '../../data/extraExercises';
+import { HOW_TO } from '../../data/howTo';
 import { WorkoutAvatar } from '../Common/WorkoutAvatar';
 
 const MUSCLES = ['All', 'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core', 'Full Body'];
@@ -147,6 +149,7 @@ export const ExerciseLibraryView: React.FC<Props> = ({ workoutLogs = [] }) => {
 export const ExerciseDetail: React.FC<{
   ex: Exercise; logs: WorkoutSessionLog[]; onOpen: (e: Exercise) => void; onClose: () => void;
 }> = ({ ex, logs, onOpen, onClose }) => {
+  useBackClose(true, onClose);
   const [playing, setPlaying] = useState(false);
   const cue = getExerciseVideoCue(ex.id);
   const source = cue ? VIDEO_SOURCES[cue.source] : undefined;
@@ -160,7 +163,7 @@ export const ExerciseDetail: React.FC<{
     <div className="fixed inset-0 z-50 bg-hy-bg overflow-y-auto animate-fadeIn" role="dialog" aria-modal="true" aria-label={ex.name}>
       <div className="max-w-xl mx-auto pb-16">
         {/* Video / demo */}
-        <div className="relative w-full bg-hy-bg-2" style={{ paddingTop: '62%' }}>
+        <div className="relative w-full bg-hy-bg-2" style={{ paddingTop: '72%' }}>
           {playing && source && cue ? (
             <iframe
               className="absolute inset-0 w-full h-full"
@@ -172,7 +175,7 @@ export const ExerciseDetail: React.FC<{
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <WorkoutAvatar animationType={ex.avatarAnimation} anchorPosition={ex.anchorPosition} exerciseName={ex.name} size="md" />
+              <WorkoutAvatar animationType={ex.avatarAnimation} anchorPosition={ex.anchorPosition} exerciseName={ex.name} size="lg" />
               {source && (
                 <button type="button" onClick={() => setPlaying(true)}
                   className="absolute bottom-4 right-4 h-11 px-4 rounded-full bg-hy-primary text-hy-on-primary text-sm font-bold">
@@ -223,17 +226,7 @@ export const ExerciseDetail: React.FC<{
             )}
           </section>
 
-          <section>
-            <h2 className="text-base font-bold text-hy-text mb-3">How to</h2>
-            <ol className="space-y-2.5">
-              {ex.instructions.map((step, i) => (
-                <li key={i} className="flex gap-3 text-sm text-hy-text-2">
-                  <span className="w-6 h-6 rounded-full bg-hy-surface text-hy-text text-xs flex items-center justify-center shrink-0">{i + 1}</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-          </section>
+          <HowToSteps ex={ex} />
 
           {ex.commonMistakes?.length ? (
             <section>
@@ -265,5 +258,45 @@ export const ExerciseDetail: React.FC<{
         </div>
       </div>
     </div>
+  );
+};
+
+/** Full written instructions: setup, numbered steps, breathing and what you should feel. */
+export const HowToSteps: React.FC<{ ex: Exercise; compact?: boolean }> = ({ ex, compact }) => {
+  const h = HOW_TO[ex.id];
+  const steps = h?.steps ?? ex.instructions;
+  return (
+    <section className={compact ? 'space-y-3 text-left' : 'space-y-4'}>
+      {!compact && <h2 className="text-base font-bold text-hy-text">How to do it</h2>}
+      {h?.setup && (
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-hy-text-3 mb-1">Set up</div>
+          <p className="text-sm text-hy-text-2 leading-relaxed">{h.setup}</p>
+        </div>
+      )}
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-hy-text-3 mb-2">Each rep</div>
+        <ol className="space-y-2.5">
+          {steps.map((step, i) => (
+            <li key={i} className="flex gap-3 text-sm text-hy-text-2 leading-relaxed">
+              <span className="w-6 h-6 rounded-full bg-hy-surface text-hy-text text-xs flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      {h && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className="rounded-2xl bg-hy-surface p-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-hy-text-3 mb-1">Breathing</div>
+            <p className="text-sm text-hy-text-2 leading-relaxed">{h.breathe}</p>
+          </div>
+          <div className="rounded-2xl bg-hy-surface p-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-hy-text-3 mb-1">You should feel it</div>
+            <p className="text-sm text-hy-text-2 leading-relaxed">{h.feel}</p>
+          </div>
+        </div>
+      )}
+    </section>
   );
 };

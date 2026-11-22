@@ -75,6 +75,12 @@ interface Spec {
   handles?: boolean;
   bandsOnTop?: boolean;
   dur?: number;
+  /** force the motion path onto one body part */
+  trailOn?: 'handN' | 'handF' | 'ankleN' | 'ankleF' | 'hip' | 'head';
+  /** hide the motion path (multi-phase moves where one arrow would mislead) */
+  noTrail?: boolean;
+  /** Two-to-four word grip/position hint drawn on the stage when the pose alone can't show it. */
+  cue?: string;
   /** Static scenery drawn behind the athlete (bench, box, table, door frame, dip bar). */
   props?: PropSpec[];
 }
@@ -255,7 +261,22 @@ interface Motion {
   has: Set<string>;
   ns: string;
   bandRest: { d: string; w: number }[];
+  /** dashed path of the part that travels furthest (start -> end of the working phase) */
+  trail?: string;
+  /** bones that drive the movement, outlined in the accent colour */
+  focus: Set<BoneId>;
 }
+
+type Effector = 'handN' | 'handF' | 'ankleN' | 'ankleF' | 'hip' | 'head';
+const EFFECTOR_PT: Record<Effector, (S: Solved) => Pt> = {
+  handN: (S) => S.en.hnN, handF: (S) => S.en.hnF, ankleN: (S) => S.st.ftN, ankleF: (S) => S.st.ftF,
+  hip: (S) => S.st.tor, head: (S) => S.en.hd,
+};
+const CHAIN: Record<Effector, BoneId[]> = {
+  handN: ['uaN', 'faN', 'hnN'], handF: ['uaF', 'faF', 'hnF'], ankleN: ['thN', 'shN', 'ftN'], ankleF: ['thF', 'shF', 'ftF'],
+  hip: ['thN', 'thF', 'shN', 'shF'], head: ['tor', 'ch'],
+};
+const pathLen = (pts: Pt[]) => pts.slice(1).reduce((a, q, i) => a + Math.hypot(q.x - pts[i].x, q.y - pts[i].y), 0);
 
 interface Stop { pct: number; pose: NPose; s: number }
 const makeStops = (spec: Spec): Stop[] => {
@@ -306,7 +327,38 @@ const buildMotion = (spec: Spec, ns: string): Motion => {
   // muscle contraction glow
   (spec.glows ?? []).forEach((g, i) =>
     emit(`g${i}`, (k) => `opacity:${(0.12 + 0.88 * (g.inv ? 1 - stops[k].s : stops[k].s)).toFixed(2)}`, true));
-  return { css: blocks.join('\n'), rest, has, ns, bandRest };
+  // working phase: rest -> peak (first half of a two-pose rep, or up to the furthest point of a sequence)
+  let work = samples.slice(0, spec.seq ? samples.length : NSTEP + 1);
+  // limbs are scored by how far they move relative to the hips, so a whole-body move (pull-up, squat)
+  // is shown by the head or hips rather than by feet that only ride along
+  const hips = work.map(EFFECTOR_PT.hip);
+  const scores = (Object.keys(EFFECTOR_PT) as Effector[]).map((e) => {
+    const pts = work.map(EFFECTOR_PT[e]);
+    const whole = e === 'hip' || e === 'head';
+    const len = whole ? pathLen(pts) * (e === 'head' ? 1.05 : 1) : pathLen(pts.map((q, i) => P(q.x - hips[i].x, q.y - hips[i].y)));
+    return { e, pts, len };
+  }).sort((a, b) => b.len - a.len);
+  let trail: string | undefined;
+  const focus = new Set<BoneId>();
+  const best = spec.trailOn ? scores.find((x) => x.e === spec.trailOn) : scores[0];
+  if (!spec.noTrail && best && best.len > 8) {
+    let pts = best.pts;
+    if (spec.seq) {
+      // cut a sequence at its furthest point from the start so the arrow shows one clear direction
+      let far = 0, fi = 0;
+      pts.forEach((q, i) => { const d = Math.hypot(q.x - pts[0].x, q.y - pts[0].y); if (d > far) { far = d; fi = i; } });
+      pts = pts.slice(0, Math.max(2, fi + 1));
+    }
+    trail = `M ${pts.map((q) => `${f1(q.x)} ${f1(q.y)}`).join(' L ')}`;
+    // the limb that drives the effector, plus its mirror when it moves as much
+    CHAIN[best.e].forEach((b) => focus.add(b));
+    const mirror: Partial<Record<Effector, Effector>> = { handN: 'handF', handF: 'handN', ankleN: 'ankleF', ankleF: 'ankleN' };
+    const mi = mirror[best.e];
+    const other = mi && scores.find((x) => x.e === mi);
+    if (other && other.len > best.len * 0.6) CHAIN[mi!].forEach((b) => focus.add(b));
+  }
+  work = [];
+  return { css: blocks.join('\n'), rest, has, ns, bandRest, trail, focus };
 };
 
 /* ========================================================================== */
@@ -368,7 +420,7 @@ const SPECS: Record<string, Spec> = {
   },
 
   'bicep-curl': {
-    view: 'side', handles: true, dur: 2.4,
+    view: 'side', handles: true, cue: 'Palms up', dur: 2.4,
     rest: { ...SS, arm: [93, 90] },
     peak: { ...SS, arm: [93, -40], wrist: -10 },
     bands: [FLOOR_BAND('footN', 78)],
@@ -418,14 +470,14 @@ const SPECS: Record<string, Spec> = {
   'bent-over-row': {
     view: 'side', handles: true, dur: 2.3,
     rest: { hip: P(112, 160), torso: -45, chest: -40, head: -35, leg: P(140, 236), legF: P(145, 236), foot: 0, arm: [90, 88] },
-    peak: { hip: P(112, 160), torso: -45, chest: -40, head: -35, leg: P(140, 236), legF: P(145, 236), foot: 0, arm: [150, 100] },
+    peak: { hip: P(112, 160), torso: -45, chest: -40, head: -35, leg: P(140, 236), legF: P(145, 236), foot: 0, arm: [196, 96] },
     bands: [FLOOR_BAND('footN', 52)],
     glows: [{ b: 'ch', t: 0.6, r: 16, dy: -7 }, { b: 'uaN', t: 0.5, r: 10, dy: 3 }],
   },
 
   deadlift: {
     view: 'side', handles: true, dur: 2.8,
-    rest: { hip: P(104, 172), torso: -36, chest: -30, head: -32, leg: P(141, 236), legF: P(146, 236), foot: 0, arm: [90, 90] },
+    rest: { hip: P(100, 188), torso: -42, chest: -36, head: -34, leg: P(141, 236), legF: P(146, 236), foot: 0, arm: [90, 90] },
     peak: { hip: P(141, 151), torso: -92, chest: -91, head: -90, leg: P(141, 236), legF: P(146, 236), foot: 0, arm: [92, 90] },
     bands: [FLOOR_BAND('footN', 60)],
     glows: [{ b: 'tor', t: 0.3, r: 16, dy: -6 }, { b: 'thN', t: 0.25, r: 14, dy: 3 }, { b: 'ch', t: 0.5, r: 14, dy: -6 }],
@@ -458,7 +510,7 @@ const SPECS: Record<string, Spec> = {
   'glute-bridge': {
     view: 'side', dur: 2.6,
     rest: { hip: P(136, 229), torso: 180, head: 180, arm: [6, 4], leg: P(190, 236), legF: P(194, 236), foot: 0 },
-    peak: { hip: P(133, 211), torso: 161.2, head: 180, arm: [6, 4], leg: P(190, 236), legF: P(194, 236), foot: 0 },
+    peak: { hip: P(131, 205), torso: 155, head: 180, arm: [6, 4], leg: P(190, 236), legF: P(194, 236), foot: 0 },
     loops: [{ b: 'thN', t: 0.78 }, { b: 'thF', t: 0.78 }],
     glows: [{ b: 'thN', t: 0.05, r: 17 }, { b: 'tor', t: 0.3, r: 14, dy: -6 }],
   },
@@ -489,9 +541,10 @@ const SPECS: Record<string, Spec> = {
   },
 
   'reverse-fly': {
-    view: 'front', ts: 0.62, neck: 12, knee: FRONT_KNEES, bandsOnTop: true, dur: 2.4,
-    rest: { hip: P(140, 152), torso: -90, leg: P(131, 229), legF: P(149, 229), foot: 90, arm: [84, 80], armF: [96, 100] },
-    peak: { hip: P(140, 152), torso: -90, leg: P(131, 229), legF: P(149, 229), foot: 90, arm: [183, 176], armF: [-3, 4] },
+    /* front view, tall stance: straight arms open from in front of the chest out to a T */
+    view: 'front', knee: FRONT_KNEES, elbow: [1, -1], bandsOnTop: true, anchors: [], dur: 2.4,
+    rest: { ...FS, arm: P(131, 106), armF: P(149, 106), hand: 0, handF: 180 },
+    peak: { ...FS, arm: P(72, 100), armF: P(208, 100), hand: 180, handF: 0 },
     bands: [{ a: { j: 'handN' }, b: { j: 'handF' }, natural: 34 }],
     glows: [{ b: 'uaN', t: 0.15, r: 12 }, { b: 'uaF', t: 0.15, r: 12 }, { b: 'ch', t: 0.6, r: 14 }],
   },
@@ -550,7 +603,7 @@ Object.assign(SPECS, {
   },
 
   'archer-pushup': {
-    view: 'side', dur: 3,
+    view: 'side', cue: 'Shift side to side', dur: 3,
     rest: { hip: P(161.8, 200.4), torso: -18.06, head: -32, arm: P(215, 237), armF: P(222, 237), hand: 0, leg: P(80, 227), foot: 70 },
     peak: { hip: P(165.4, 216.1), torso: -7.3, head: -22, arm: P(215, 237), armF: P(268, 237), hand: 0, leg: P(80, 227), foot: 70 },
     bands: [{ a: { j: 'handN' }, b: { j: 'back' }, natural: 52 }, { a: { j: 'handF' }, b: { j: 'back' }, natural: 52 }],
@@ -566,10 +619,11 @@ Object.assign(SPECS, {
   },
 
   'single-arm-row': {
-    view: 'side', handles: true, anchors: [P(256, 112)], dur: 2.4,
-    rest: { hip: P(100, 162), torso: -55, chest: -50, head: -45, leg: P(132, 236), legF: P(88, 236), foot: 0, arm: [12, 8], armF: [80, 70] },
-    peak: { hip: P(100, 162), torso: -55, chest: -50, head: -45, leg: P(132, 236), legF: P(88, 236), foot: 0, arm: [165, 108], armF: [80, 70] },
-    bands: [{ a: P(250, 112), b: { j: 'handN' }, natural: 60 }],
+    /* staggered stance facing a mid-height anchor: front knee bent, back leg long, row the elbow past the ribs */
+    view: 'side', handles: true, anchors: [P(256, 128)], dur: 2.4,
+    rest: { hip: P(122, 170), torso: -48, chest: -44, head: -38, leg: P(162, 236), legF: P(64, 236), foot: 0, footF: 20, arm: [6, 6], armF: [70, 64] },
+    peak: { hip: P(118, 170), torso: -54, chest: -52, head: -42, leg: P(162, 236), legF: P(64, 236), foot: 0, footF: 20, arm: [156, 14], armF: [70, 64] },
+    bands: [{ a: P(250, 128), b: { j: 'handN' }, natural: 60 }],
     glows: [{ b: 'ch', t: 0.55, r: 17, dy: -7 }, { b: 'uaN', t: 0.5, r: 11, dy: 3 }],
   },
 
@@ -589,14 +643,15 @@ Object.assign(SPECS, {
     glows: [{ b: 'ch', t: 0.9, r: 13, dy: -6 }, { b: 'uaN', t: 0.25, r: 11, dy: 3 }],
   },
 
-  'hammer-curl': curlSpec(-34, 0, [{ b: 'faN', t: 0.4, r: 12 }, { b: 'uaN', t: 0.55, r: 11, dy: -3 }]),
-  'reverse-curl': curlSpec(-40, 14, [{ b: 'faN', t: 0.35, r: 13, dy: -3 }, { b: 'uaN', t: 0.55, r: 10, dy: -3 }]),
+  'hammer-curl': { ...curlSpec(-34, 0, [{ b: 'faN', t: 0.4, r: 12 }, { b: 'uaN', t: 0.55, r: 11, dy: -3 }]), cue: 'Thumbs up' },
+  'reverse-curl': { ...curlSpec(-40, 14, [{ b: 'faN', t: 0.35, r: 13, dy: -3 }, { b: 'uaN', t: 0.55, r: 10, dy: -3 }]), cue: 'Palms down' },
 
   'concentration-curl': {
+    /* half-kneeling: back knee down, front foot planted, elbow braced on the inside of the front knee */
     view: 'side', handles: true, dur: 2.6,
-    rest: { hip: P(140, 192), torso: -55, chest: -50, head: -45, ...KNEEL, arm: [95, 92] },
-    peak: { hip: P(140, 192), torso: -55, chest: -50, head: -45, ...KNEEL, arm: [95, -40], wrist: -8 },
-    bands: [{ a: P(124, 241), b: { j: 'handN' }, natural: 60, floorA: true }],
+    rest: { hip: P(124, 192), torso: -52, chest: -48, head: -40, leg: P(182, 236), legF: [94, 180], foot: 0, footF: 180, arm: [92, 92] },
+    peak: { hip: P(124, 192), torso: -52, chest: -48, head: -40, leg: P(182, 236), legF: [94, 180], foot: 0, footF: 180, arm: [92, -62], wrist: -8 },
+    bands: [FLOOR_BAND('footN', 50)],
     glows: [{ b: 'uaN', t: 0.55, r: 13, dy: -3 }, { b: 'faN', t: 0.3, r: 9 }],
   },
 
@@ -618,28 +673,35 @@ Object.assign(SPECS, {
 
   rdl: {
     view: 'side', handles: true, dur: 2.8,
-    rest: { ...HINGE, torso: -32, chest: -28, head: -30, arm: [90, 90] },
-    peak: { ...HINGE, hip: P(141, 151), torso: -92, chest: -91, head: -90, arm: [92, 90] },
+    rest: { ...HINGE, hip: P(106, 162), torso: -20, chest: -18, head: -22, arm: [90, 90] },
+    peak: { ...HINGE, hip: P(140, 152), torso: -92, chest: -91, head: -90, arm: [92, 90] },
     bands: [FLOOR_BAND('footN', 60)],
     glows: [{ b: 'thN', t: 0.3, r: 14, dy: 4 }, { b: 'tor', t: 0.3, r: 15, dy: -6 }],
   },
 
   'good-morning': {
     view: 'side', dur: 2.8,
-    rest: { ...HINGE, torso: -32, chest: -28, head: -30, arm: [117, -48] },
-    peak: { ...HINGE, hip: P(141, 151), torso: -90, chest: -90, head: -90, arm: [55, -110] },
+    rest: { ...HINGE, hip: P(108, 156), torso: -14, chest: -12, head: -18, arm: R(10, 12) },
+    peak: { ...HINGE, hip: P(141, 151), torso: -90, chest: -90, head: -90, arm: R(10, 12) },
     bands: [{ a: { j: 'footN' }, b: { j: 'shoulder', dx: -4 }, natural: 78, floorA: true }],
     glows: [{ b: 'ch', t: 0.3, r: 15, dy: -7 }, { b: 'tor', t: 0.3, r: 14, dy: -6 }, { b: 'thN', t: 0.3, r: 13, dy: 4 }],
   },
 
-  'monster-walk': {
-    view: 'front', knee: FRONT_KNEES, dur: 2.4,
-    rest: { hip: P(140, 152), torso: -90, leg: P(122, 229), legF: P(158, 229), foot: 90, arm: [98, 92], armF: [82, 88] },
-    peak: { hip: P(129, 152), torso: -90, leg: P(100, 229), legF: P(158, 229), foot: 90, arm: [98, 92], armF: [82, 88] },
-    bands: [{ a: { j: 'ankleN', dy: 2 }, b: { j: 'ankleF', dy: 2 }, natural: 40 }],
-    loops: [{ b: 'shN', t: 0.96 }, { b: 'shF', t: 0.96 }],
-    glows: [{ b: 'thN', t: 0.15, r: 15 }, { b: 'thF', t: 0.15, r: 15 }],
-  },
+  'monster-walk': (() => {
+    const st = (hx: number, n: number, f: number, liftN = false, liftF = false): Pose => ({
+      hip: P(hx, liftN || liftF ? 150 : 153), torso: -90, foot: 90, arm: [98, 92], armF: [82, 88],
+      leg: P(n, liftN ? 219 : 229), legF: P(f, liftF ? 219 : 229),
+    });
+    const A = st(140, 124, 156), B = st(127, 108, 156, true), C = st(122, 98, 156), D = st(116, 98, 136, false, true), E = st(114, 98, 130);
+    return {
+      view: 'front', knee: FRONT_KNEES, dur: 3.2, rest: A, peak: E,
+      seq: [{ at: 0, pose: A }, { at: 12, pose: B }, { at: 24, pose: C }, { at: 36, pose: D }, { at: 48, pose: E },
+        { at: 60, pose: st(122, 98, 146, false, true) }, { at: 72, pose: st(128, 104, 156) }, { at: 86, pose: st(134, 114, 156, true) }, { at: 100, pose: A }],
+      bands: [{ a: { j: 'ankleN', dy: 2 }, b: { j: 'ankleF', dy: 2 }, natural: 40 }],
+      loops: [{ b: 'shN', t: 0.96 }, { b: 'shF', t: 0.96 }],
+      glows: [{ b: 'thN', t: 0.15, r: 15 }, { b: 'thF', t: 0.15, r: 15 }],
+    } as Spec;
+  })(),
 } as Record<string, Spec>);
 
 /* -------------------------------------------------------------------------- */
@@ -651,7 +713,7 @@ const HAND_Y = 237.5;
 const PLANK_TOP = { hip: P(161.8, 200.4), torso: -18.06, head: -32, arm: P(215, HAND_Y) as Limb, armF: P(215, HAND_Y) as Limb, hand: 0, leg: P(80, 227) as Limb, foot: 70 };
 const PLANK_BOT = { hip: P(165.4, 216.1), torso: -7.3, head: -22, arm: P(215, HAND_Y) as Limb, armF: P(215, HAND_Y) as Limb, hand: 0, leg: P(80, 227) as Limb, foot: 70 };
 const PIKE_TOP = { hip: P(151.4, 144.9), torso: 45, head: 62, arm: P(205, 237) as Limb, armF: P(205, 237) as Limb, hand: 0, leg: P(135, 226) as Limb, foot: 60 };
-const PIKE_BOT = { hip: P(162, 150), torso: 56, head: 72, arm: P(205, 237) as Limb, armF: P(205, 237) as Limb, hand: 0, leg: P(135, 226) as Limb, foot: 60 };
+const PIKE_BOT = { hip: P(165, 154), torso: 62, head: 80, arm: P(205, 237) as Limb, armF: P(205, 237) as Limb, hand: 0, leg: P(135, 226) as Limb, foot: 60 };
 const shiftPlank = <T extends { hip: Pt; arm: Limb; armF: Limb; leg: Limb }>(p: T, dx: number): T =>
   ({ ...p, hip: P(p.hip.x + dx, p.hip.y), arm: P((p.arm as Pt).x + dx, (p.arm as Pt).y), armF: P((p.armF as Pt).x + dx, (p.armF as Pt).y), leg: P((p.leg as Pt).x + dx, (p.leg as Pt).y) });
 const noBands = (s: Spec): Spec => ({ ...s, bands: [], loops: [], handles: false, anchors: undefined });
@@ -666,6 +728,7 @@ Object.assign(SPECS, {
     const BT: Pose = { ...shiftPlank(PLANK_BOT, HX - 215) };
     const JUMP: Pose = { hip: P(139.5, 127), torso: -90, head: -92, arm: P(142, 19), leg: P(139.5, 212), foot: 60 };
     return {
+      noTrail: true,
       view: 'side', dur: 4.4,
       rest: STAND, peak: SQUAT,
       seq: [
@@ -725,7 +788,7 @@ Object.assign(SPECS, {
   })(),
 
   'diamond-pushup': {
-    view: 'side', dur: 2.8,
+    view: 'side', cue: 'Hands together', dur: 2.8,
     rest: { ...PLANK_TOP, arm: P(207, 237.3), armF: P(207, 237.3) },
     peak: { ...PLANK_BOT, arm: P(207, 237.3), armF: P(207, 237.3) },
     glows: [{ b: 'uaN', t: 0.5, r: 15, dy: 3 }, { b: 'uaF', t: 0.5, r: 13, dy: 3 }, { b: 'ch', t: 0.55, r: 12, dy: 6 }],
@@ -755,7 +818,15 @@ Object.assign(SPECS, {
 } as Record<string, Spec>);
 
 SPECS['dead-hang'] = SPECS['spine-decompression-hang'];
-SPECS['chinup-strict'] = pull(17, 40, false, 14); // no assist band
+const chinup = (band: boolean): Spec => ({
+  view: 'side', bar: 'side', barX: 150, elbow: [-1, -1], cue: 'Palms facing you', dur: 2.8,
+  rest: { hip: P(146, 145), torso: -92, head: -90, arm: P(150, 36), armF: P(152, 36), hand: -90, leg: [96, 100], foot: 40 },
+  peak: { hip: P(138, 121), torso: -99, chest: -96, head: -84, arm: P(150, 36), armF: P(152, 36), hand: -90, leg: [104, 112], foot: 50 },
+  bands: band ? [{ a: P(150, 36), b: { j: 'ankleN', dy: -6 }, natural: 120 }] : [],
+  glows: [{ b: 'uaN', t: 0.5, r: 14 }, { b: 'ch', t: 0.5, r: 16, dy: -6 }],
+});
+SPECS['chinup-strict'] = chinup(false);
+SPECS['chinup-assisted'] = chinup(true);
 SPECS['archer-pushup-bodyweight'] = noBands(SPECS['archer-pushup']);
 SPECS['pushup-standard'] = noBands(SPECS.pushup);
 SPECS['air-squat'] = noBands({ ...SPECS.squat, rest: { ...SPECS.squat.rest, arm: [-4, -4] }, peak: { ...SPECS.squat.peak, arm: [-4, -4] } });
@@ -974,18 +1045,30 @@ Object.assign(SPECS, {
   'planche-lean': {
     view: 'side', dur: 3,
     rest: { ...PLANK_TOP },
-    peak: { hip: P(179.8, 203.6), torso: -18, head: -30, arm: P(215, HAND_Y), armF: P(215, HAND_Y), hand: 0, leg: P(98, 230), foot: 50 },
+    peak: { hip: P(187.7, 206.4), torso: -18, head: -30, arm: P(215, HAND_Y), armF: P(215, HAND_Y), hand: 0, leg: P(106, 233), foot: 45 },
     glows: [{ b: 'uaN', t: 0.15, r: 13 }, { b: 'ch', t: 0.6, r: 13, dy: 6 }, { b: 'tor', t: 0.5, r: 12, dy: 6 }],
   },
 
   /* tuck front lever: from a dead hang, hips rise until the back is level */
   'front-lever-raise': {
-    view: 'side', elbow: [-1, -1], bar: 'side', barX: 144, dur: 3.2,
+    /* tuck front lever: arms stay straight, body rotates back until the back is level, knees tucked to the chest */
+    view: 'side', elbow: [-1, -1], bar: 'side', barX: 144, trailOn: 'hip', dur: 3.2,
     rest: { hip: P(140, 146), torso: -90, head: -90, arm: P(144, 36), armF: P(146, 36), hand: -90, leg: [90, 90], foot: 30 },
-    peak: { hip: P(177, 86), torso: -180, head: -186, arm: P(144, 36), armF: P(146, 36), hand: -90, leg: [158, 22], foot: 22 },
+    peak: { hip: P(177, 86), torso: -180, head: -192, arm: P(144, 36), armF: P(146, 36), hand: -90, leg: [212, 10], foot: -20 },
     bands: [{ a: P(150, 36), b: { j: 'hip' }, natural: 100 }],
     glows: [{ b: 'ch', t: 0.4, r: 16, dy: -6 }, { b: 'tor', t: 0.5, r: 14 }, { b: 'uaN', t: 0.3, r: 11 }],
   },
+
+  /* forearm plank hold: elbows under shoulders, one straight line heel to head; a slow brace pulse */
+  'forearm-plank': (() => {
+    const A = P(70, 231);
+    const pose = (a: number, head: number): Pose => ({ hip: along(A, a, TH + SH), torso: a, head, leg: A, foot: 75, arm: P(238, 236), hand: 0 });
+    return {
+      view: 'side', elbow: [-1, -1], cue: 'Hold', noTrail: true, dur: 3.6,
+      rest: pose(-9.7, -14), peak: pose(-10.6, -16),
+      glows: [{ b: 'tor', t: 0.5, r: 16, dy: 6 }, { b: 'ch', t: 0.3, r: 14, dy: 6 }, { b: 'thN', t: 0.2, r: 12 }],
+    } as Spec;
+  })(),
 
   /* slow plank knee drive: one knee pulls all the way to the chest, hips stay level */
   'plank-knee-crunch': {
@@ -1085,6 +1168,7 @@ const Head: React.FC<{ len: number; side: boolean }> = ({ len, side }) => {
 /*  RECURSIVE ARTICULATED BONE RENDERER                                        */
 /*  <g class=anim style=transform-origin:joint> -> bone art -> child bones     */
 /* ========================================================================== */
+const ACCENT = '#E2F952';
 const SKIN_NEAR = 'url(#avatarSkinWarm)';
 const SKIN_FAR = 'url(#avatarSkinShadow)';
 
@@ -1100,6 +1184,9 @@ const renderBone = (id: BoneId, c: RenderCtx): React.ReactNode => {
   const st = S.st[id];
   const ang = S.abs[id];
   const ringR = far ? 3.2 : 4;
+  const hot = m.focus.has(id);
+  const edge = hot ? ACCENT : '#E6A860';
+  const ew = hot ? 2 : 0.8;
   const cls = m.has.has(id) ? `${m.ns}-${id}` : undefined;
   const frame = `translate(${f1(st.x)} ${f1(st.y)}) rotate(${f1(ang)})`;
 
@@ -1160,14 +1247,14 @@ const renderBone = (id: BoneId, c: RenderCtx): React.ReactNode => {
     case 'hd':
       return wrap(<Head len={len} side={!front} />);
     case 'uaN': case 'uaF':
-      return wrap(<path d={capsule(len, 14, 11)} fill={skin} stroke="#E6A860" strokeWidth="0.8" />, renderBone(`fa${sd}` as BoneId, c), <Ring r={ringR} />);
+      return wrap(<path d={capsule(len, 14, 11)} fill={skin} stroke={edge} strokeWidth={ew} />, renderBone(`fa${sd}` as BoneId, c), <Ring r={ringR} />);
     case 'faN': case 'faF':
-      return wrap(<path d={capsule(len, 11, 8.5)} fill={skin} stroke="#E6A860" strokeWidth="0.8" />, renderBone(`hn${sd}` as BoneId, c), <Ring r={ringR - 0.3} />);
+      return wrap(<path d={capsule(len, 11, 8.5)} fill={skin} stroke={edge} strokeWidth={ew} />, renderBone(`hn${sd}` as BoneId, c), <Ring r={ringR - 0.3} />);
     case 'hnN': case 'hnF':
       return wrap(
         <>
-          <path d={capsule(len, 8.5, 9)} fill={skin} stroke="#E6A860" strokeWidth="0.8" />
-          <circle cx={len - 0.5} cy="0" r="5.2" fill={skin} stroke="#E6A860" strokeWidth="0.8" />
+          <path d={capsule(len, 8.5, 9)} fill={skin} stroke={edge} strokeWidth={ew} />
+          <circle cx={len - 0.5} cy="0" r="5.2" fill={skin} stroke={edge} strokeWidth={ew} />
           {spec.handles && <rect x={len - 2.2} y="-7.5" width="4.4" height="15" rx="2.2" fill="#2979FF" stroke="#0F172A" strokeWidth="1" />}
         </>,
         null,
@@ -1176,14 +1263,14 @@ const renderBone = (id: BoneId, c: RenderCtx): React.ReactNode => {
     case 'thN': case 'thF':
       return wrap(
         <>
-          <path d={capsule(len, 20, 14)} fill={skin} stroke="#E6A860" strokeWidth="0.8" />
-          <path d={capsule(len * 0.5, 22, 18.5)} fill="url(#avatarShortsDark)" stroke="#020617" strokeWidth="0.8" />
+          <path d={capsule(len, 20, 14)} fill={skin} stroke={edge} strokeWidth={ew} />
+          <path d={capsule(len * 0.5, 22, 18.5)} fill="url(#avatarShortsDark)" stroke={hot ? ACCENT : '#020617'} strokeWidth={ew} />
         </>,
         renderBone(`sh${sd}` as BoneId, c),
         <Ring r={ringR + 0.4} />,
       );
     case 'shN': case 'shF':
-      return wrap(<path d={capsule(len, 14, 9)} fill={SKIN_FAR === skin ? skin : 'url(#avatarSkinShadow)'} stroke="#E6A860" strokeWidth="0.8" />, renderBone(`ft${sd}` as BoneId, c), <Ring r={ringR} />);
+      return wrap(<path d={capsule(len, 14, 9)} fill={SKIN_FAR === skin ? skin : 'url(#avatarSkinShadow)'} stroke={edge} strokeWidth={ew} />, renderBone(`ft${sd}` as BoneId, c), <Ring r={ringR} />);
     case 'ftN': case 'ftF':
       return wrap(
         front ? (
@@ -1293,7 +1380,7 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
   const sizeClasses = {
     sm: 'w-24 h-24',
     md: 'w-44 h-44',
-    lg: 'w-64 h-64 md:w-72 md:h-72',
+    lg: 'w-60 h-60 sm:w-64 sm:h-64 md:w-72 md:h-72',
   }[size];
 
   // Dynamic resistance band color matching equipment / stealth theme
@@ -1415,6 +1502,9 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
         aria-label={exerciseName || resolvedAnim}
       >
         <defs>
+          <marker id={`${ns}-arrow`} viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill={ACCENT} />
+          </marker>
           {/* HIGH-CONTRAST PULL-UP BAR METALLIC RED GRADIENT */}
           <linearGradient id="barMetalRed" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#EF5350" />
@@ -1511,6 +1601,19 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
           </g>
           {spec.bandsOnTop && bandEls}
         </g>
+
+        {/* MOTION PATH: where the working part travels, arrow at the finish */}
+        {m.trail && (
+          <path d={m.trail} fill="none" stroke={ACCENT} strokeWidth="2.2" strokeDasharray="4 4" strokeLinecap="round"
+            strokeLinejoin="round" opacity="0.8" markerEnd={`url(#${ns}-arrow)`} style={{ pointerEvents: 'none' }} />
+        )}
+
+        {spec.cue && size !== 'sm' && (
+          <g transform="translate(10 10)" style={{ pointerEvents: 'none' }}>
+            <rect width={spec.cue.length * 6.4 + 16} height="20" rx="10" fill="#000" opacity="0.6" />
+            <text x="8" y="14" fontSize="11.5" fontWeight="700" fill={ACCENT} fontFamily="system-ui, sans-serif">{spec.cue}</text>
+          </g>
+        )}
       </svg>
     </div>
   );

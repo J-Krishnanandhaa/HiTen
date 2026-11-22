@@ -1,4 +1,5 @@
 import React from 'react';
+import { useBackClose } from '../../utils/backStack';
 import { X, ExternalLink } from 'lucide-react';
 import { getExerciseVideoCue, getExerciseYoutubeUrl, VIDEO_SOURCES } from '../../data/exerciseDatabase';
 
@@ -14,6 +15,7 @@ interface VideoDemoSheetProps {
  * Exercises without a verified clip open a YouTube search instead.
  */
 export const VideoDemoSheet: React.FC<VideoDemoSheetProps> = ({ exerciseId, exerciseName, onClose }) => {
+  useBackClose(!!exerciseId, onClose);
   if (!exerciseId) return null;
   const cue = getExerciseVideoCue(exerciseId);
   const external = getExerciseYoutubeUrl(exerciseId, exerciseName);

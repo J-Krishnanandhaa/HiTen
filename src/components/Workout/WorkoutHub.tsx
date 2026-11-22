@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBackClose } from '../../utils/backStack';
 import { 
   Play, Plus, Dumbbell, Flame, Clock, Trophy, ChevronRight, 
   Check, Info, X, Zap, ArrowLeft, Layers, Sliders, ExternalLink, Calendar, Coffee 
@@ -50,6 +51,9 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
   const [inspectingExercise, setInspectingExercise] = useState<Exercise | null>(null);
   const [showChallengeMatrix, setShowChallengeMatrix] = useState(false);
   const [showWorkdayScheduleModal, setShowWorkdayScheduleModal] = useState(false);
+  useBackClose(!!selectedRoutine, () => setSelectedRoutine(null));
+  useBackClose(showChallengeMatrix, () => setShowChallengeMatrix(false));
+  useBackClose(showWorkdayScheduleModal, () => setShowWorkdayScheduleModal(false));
 
   // Filter states (Split by Experience & Body Parts)
   const [selectedTier, setSelectedTier] = useState<number | 'all'>('all'); // 1, 2, 3, 'all'

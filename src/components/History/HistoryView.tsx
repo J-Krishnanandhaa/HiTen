@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBackClose } from '../../utils/backStack';
 import { 
   Clock, Flame, Trophy, Calendar, ChevronDown, 
   ChevronUp, Scale, Activity, Plus, ChevronLeft, 
@@ -28,6 +29,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'calendar' | 'summary'>('calendar');
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
   const [showWeightModal, setShowWeightModal] = useState(false);
+  useBackClose(showWeightModal, () => setShowWeightModal(false));
   const [inputWeight, setInputWeight] = useState(userProfile.weightKg);
 
   // Calendar State: Defaults to current month and today's date

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useBackClose } from '../../utils/backStack';
+import { HowToSteps } from '../ExerciseLibrary/ExerciseLibraryView';
 import { X, Volume2, VolumeX, Check, Plus, Minus, Shield, SkipForward, SkipBack, Flame, Repeat, Trophy, TrendingUp } from 'lucide-react';
 import { Routine, Exercise, LoggedExercise, LoggedSet, WorkoutSessionLog, UserProfile } from '../../types';
 import { EXERCISE_DATABASE, getExerciseById, getExerciseTimestampLabel } from '../../data/exerciseDatabase';
@@ -115,6 +117,10 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
   const [videoFor, setVideoFor] = useState<Exercise | null>(null);
   const [showSwap, setShowSwap] = useState(false);
   const [confirmQuit, setConfirmQuit] = useState(false);
+  // Back during a workout asks before ending it (never drops the session silently).
+  useBackClose(!confirmQuit, () => setConfirmQuit(true));
+  useBackClose(showTips, () => setShowTips(false));
+  useBackClose(showSwap, () => setShowSwap(false));
   const [prToast, setPrToast] = useState<string | null>(null);
   const [completedLog, setCompletedLog] = useState<WorkoutSessionLog | null>(null);
   const [restExtras, setRestExtras] = useState<Record<string, number>>(loadRestExtras);
@@ -793,13 +799,13 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
                     <Repeat className="w-3.5 h-3.5" /> Swap
                   </button>
                   <button type="button" onClick={() => setShowTips(s => !s)} aria-expanded={showTips} className="min-h-[44px] px-2.5 rounded-lg bg-hy-elevated text-xs font-semibold flex items-center gap-1">
-                    <Shield className="w-3.5 h-3.5 text-hy-primary" /> Tips
+                    <Shield className="w-3.5 h-3.5 text-hy-primary" /> How to
                   </button>
                 </div>
               </div>
 
               <div className="my-1 flex items-center justify-center">
-                <WorkoutAvatar animationType={exercise.avatarAnimation} anchorPosition={exercise.anchorPosition} exerciseName={exercise.name} bandColorHex={bandColor} size="md" isPaused={isPaused} />
+                <WorkoutAvatar animationType={exercise.avatarAnimation} anchorPosition={exercise.anchorPosition} exerciseName={exercise.name} bandColorHex={bandColor} size="lg" isPaused={isPaused} />
               </div>
 
               <div className="flex items-center justify-center gap-2">
@@ -817,7 +823,8 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
               </div>
 
               {showTips && (
-                <div className="mt-3 p-3 rounded-2xl bg-hy-bg text-left text-sm space-y-2 border border-hy-border max-h-56 overflow-y-auto">
+                <div className="mt-3 p-3 rounded-2xl bg-hy-bg text-left text-sm space-y-3 border border-hy-border max-h-80 overflow-y-auto">
+                  <HowToSteps ex={exercise} compact />
                   <div className="font-bold text-hy-primary">Form</div>
                   <ul className="list-disc list-inside text-hy-text space-y-1">
                     {exercise.formCues.map((c, i) => (

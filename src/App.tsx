@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBackClose } from './utils/backStack';
 import {
   loadUserProfile, saveUserProfile,
   loadRoutines, saveRoutines,
@@ -25,6 +26,8 @@ export const App: React.FC = () => {
 
   // Active Live Workout Session
   const [activeWorkoutRoutine, setActiveWorkoutRoutine] = useState<Routine | null>(null);
+  // Back from Exercises / Report / Me returns to Home; back on Home leaves the app.
+  useBackClose(activeTab !== 'training', () => setActiveTab('training'));
 
   // Sync profile changes
   const handleUpdateProfile = (updated: UserProfile) => {
