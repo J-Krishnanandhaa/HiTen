@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Trash2, Download, Upload, RotateCcw, 
-  Check, User, Layers, ShieldCheck, Dumbbell, Sparkles, Clock,
-  ExternalLink, CheckCircle2, XCircle
+  Check, User, Layers, Dumbbell, Sparkles, CheckCircle2
 } from 'lucide-react';
 import { UserProfile, ResistanceBand, BandType } from '../../types';
-import { ALL_DEFAULT_BANDS, SLOVIC_LOOP_BANDS } from '../../data/defaultBands';
+import { SLOVIC_LOOP_BANDS } from '../../data/defaultBands';
 import { exportAllData, importAllData, resetAllDataToFresh } from '../../utils/storage';
-import { getDurationPresetInfo } from '../../utils/routineScaler';
-import { getEquipmentMode, getEquipmentModeDetails } from '../../utils/equipmentManager';
+import { getEquipmentMode } from '../../utils/equipmentManager';
 import { bandRangeLabel } from '../../utils/bands';
 import { ConfirmSheet } from '../Common/ConfirmSheet';
 
@@ -55,12 +53,6 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
     onUpdateProfile(sanitized);
     setIsSavedAlert(true);
     setTimeout(() => setIsSavedAlert(false), 2500);
-  };
-
-  const handleUpdateDuration = (mins: number) => {
-    const updated = { ...profile, targetWorkoutDurationMins: mins };
-    setProfile(updated);
-    onUpdateProfile(updated);
   };
 
   const handleAddBand = () => {
@@ -156,10 +148,9 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
     window.location.reload();
   };
 
-  const currentDuration = profile.targetWorkoutDurationMins || 20;
 
   return (
-    <div className="space-y-5 pb-24 max-w-xl md:max-w-4xl lg:max-w-5xl landscape:max-w-5xl mx-auto animate-fadeIn">
+    <div className="space-y-5 pb-28 max-w-xl md:max-w-4xl lg:max-w-5xl landscape:max-w-5xl mx-auto animate-fadeIn">
       <ConfirmSheet
         open={confirmReset}
         title="Reset everything?"
@@ -183,11 +174,8 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-heading font-black text-white tracking-tight">
-            Profile & Equipment
+            Profile
           </h2>
-          <span className="text-xs text-hy-text-2 font-semibold">
-            Calibrate your workout time, bands, and body stats
-          </span>
         </div>
 
         {isSavedAlert && (
@@ -200,129 +188,31 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 landscape:grid-cols-2 gap-4 items-start">
         
-        {/* Left Column: Duration Control & Equipment */}
+        {/* Left Column: Equipment */}
         <div className="space-y-4">
-
-          {/* 1. WORKOUT SESSION DURATION SELECTOR & AUTO-SCALING */}
-          <div className="hy-card p-5 space-y-3 border-l-4 border-l-hy-volt">
-            <div className="flex items-center justify-between pb-2.5 border-b border-hy-elevated">
-              <div className="flex items-center gap-2.5">
-                <Clock className="w-4 h-4 text-hy-volt" />
-                <h3 className="text-sm font-bold text-white">Workout Session Duration</h3>
-              </div>
-              <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-hy-volt/10 text-hy-volt border border-hy-volt/30">
-                {currentDuration} Mins
-              </span>
-            </div>
-
-            <p className="text-xs text-hy-text-2 leading-relaxed">
-              Decide how long you want to workout. The app automatically scales exercises, set volumes, and rest timers to match your exact duration.
-            </p>
-
-            {/* Quick Pills */}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pt-1">
-              {[10, 15, 20, 25, 30, 40].map((mins) => {
-                const isSelected = currentDuration === mins;
-                return (
-                  <button
-                    key={mins}
-                    type="button"
-                    onClick={() => handleUpdateDuration(mins)}
-                    className={`py-2 px-1 text-center rounded-xl text-xs font-black transition-all border ${
-                      isSelected
-                        ? 'bg-gradient-to-r from-hy-primary to-hy-volt text-hy-on-primary border-transparent shadow-lg shadow-hy-primary/30 scale-[1.02]'
-                        : 'bg-hy-bg text-hy-text-2 border-hy-elevated hover:border-slate-600 hover:text-white'
-                    }`}
-                  >
-                    <div>{mins}m</div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Duration Stepper Controls */}
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-hy-bg border border-hy-elevated mt-1">
-              <span className="text-xs text-hy-text-2 font-semibold">Fine-tune time:</span>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleUpdateDuration(Math.max(5, currentDuration - 5))}
-                  className="w-8 h-8 rounded-lg bg-hy-surface hover:bg-hy-elevated border border-hy-border text-white font-bold flex items-center justify-center active:scale-95 transition-transform"
-                >
-                  -
-                </button>
-                <span className="text-sm font-black text-white w-14 text-center">
-                  {currentDuration} min
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleUpdateDuration(Math.min(60, currentDuration + 5))}
-                  className="w-8 h-8 rounded-lg bg-hy-surface hover:bg-hy-elevated border border-hy-border text-white font-bold flex items-center justify-center active:scale-95 transition-transform"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Dynamic Preset Preview Badge */}
-            {(() => {
-              const info = getDurationPresetInfo(currentDuration);
-              return (
-                <div className="p-3 rounded-xl bg-hy-volt/5 border border-hy-volt/20 text-xs text-slate-300 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-hy-volt">{info.badge}</span>
-                    <span className="text-xs text-hy-text-2 font-semibold">{info.setsDescription} • {info.restDescription}</span>
-                  </div>
-                  <p className="text-xs text-hy-text-2 leading-normal">
-                    {info.summary}
-                  </p>
-                </div>
-              );
-            })()}
-          </div>
 
           {/* 2. EQUIPMENT FREEDOM & AVAILABILITY CONTROLS */}
           {(() => {
             const hasBands = profile.hasResistanceBands !== false;
-            const hasBar = profile.hasPullUpBar !== false;
             const mode = getEquipmentMode(profile);
-            const modeDetails = getEquipmentModeDetails(mode);
-
-            const handleToggleBands = () => {
-              const updated = { ...profile, hasResistanceBands: !hasBands };
-              setProfile(updated);
-              onUpdateProfile(updated);
-            };
-
-            const handleToggleBar = () => {
-              const updated = { ...profile, hasPullUpBar: !hasBar };
-              setProfile(updated);
-              onUpdateProfile(updated);
-            };
 
             return (
               <div className="hy-card p-5 space-y-4 border-l-4 border-l-hy-primary">
                 <div className="flex items-center justify-between pb-2.5 border-b border-hy-elevated">
                   <div className="flex items-center gap-2">
                     <Dumbbell className="w-4 h-4 text-hy-primary" />
-                    <h3 className="text-sm font-bold text-white">Equipments</h3>
+                    <h3 className="text-sm font-bold text-white">Equipment</h3>
                   </div>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-hy-primary/10 text-hy-primary border border-hy-primary/30">
-                    Customizable Gear
-                  </span>
                 </div>
 
-                <p className="text-xs text-hy-text-2 leading-relaxed">
-                  Turn your equipment ON or OFF. All workouts in the app will automatically filter and adapt to your available gear.
-                </p>
 
                 {/* 1-Click Quick Gear Switcher Presets */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1">
                   {[
-                    { id: 'hybrid', label: '✨ Hybrid', sub: 'Bands + Bar', bands: true, bar: true, color: '#6EA8FF' },
-                    { id: 'bands-only', label: '⚡ Bands Only', sub: 'Door & Floor', bands: true, bar: false, color: '#C8F25A' },
-                    { id: 'bar-only', label: '🏋️ Pull-Up Bar', sub: 'Bar Calisthenics', bands: false, bar: true, color: '#E53935' },
-                    { id: 'no-equipment', label: '🔥 No Equipment', sub: 'Rowan Row Moves', bands: false, bar: false, color: '#4ADE80' },
+                    { id: 'hybrid', label: 'Hybrid', sub: 'Bands + Bar', bands: true, bar: true, color: '#F5F5F5' },
+                    { id: 'bands-only', label: 'Bands only', sub: 'Door & Floor', bands: true, bar: false, color: '#F5F5F5' },
+                    { id: 'bar-only', label: 'Pull-up bar', sub: 'Bar only', bands: false, bar: true, color: '#F5F5F5' },
+                    { id: 'no-equipment', label: 'No equipment', sub: 'Bodyweight', bands: false, bar: false, color: '#F5F5F5' },
                   ].map(btn => {
                     const isCurrent = mode === btn.id;
                     return (
@@ -364,138 +254,25 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
                   })}
                 </div>
 
-                {/* Independent Toggle Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {/* Resistance Bands Toggle */}
-                  <button
-                    type="button"
-                    onClick={handleToggleBands}
-                    className={`p-3.5 rounded-xl border text-left transition-all group flex flex-col justify-between relative overflow-hidden ${
-                      hasBands
-                        ? 'bg-hy-bg border-hy-primary/50 hover:border-hy-primary shadow-md shadow-hy-primary/5'
-                        : 'bg-hy-bg/60 border-hy-elevated text-hy-text-3 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full mb-2">
-                      <div className="flex items-center gap-2">
-                        <Layers className={`w-4 h-4 ${hasBands ? 'text-hy-primary' : 'text-hy-text-3'}`} />
-                        <span className={`text-xs font-bold ${hasBands ? 'text-white' : 'text-hy-text-2'}`}>
-                          Resistance Bands
-                        </span>
-                      </div>
-                      <span className={`text-xs font-black px-2 py-0.5 rounded-md border flex items-center gap-1 ${
-                        hasBands
-                          ? 'bg-hy-primary/20 text-hy-primary border-hy-primary/40'
-                          : 'bg-hy-elevated text-hy-text-2 border-hy-border'
-                      }`}>
-                        {hasBands ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                        {hasBands ? 'ON' : 'OFF'}
-                      </span>
-                    </div>
-
-                    <div className="text-xs text-hy-text-2 leading-tight">
-                      {hasBands 
-                        ? `${profile.ownedBands.length} Loop Bands active in workouts`
-                        : 'Turned off • Band exercises excluded'}
-                    </div>
-                  </button>
-
-                  {/* Pull-Up Bar Toggle */}
-                  <button
-                    type="button"
-                    onClick={handleToggleBar}
-                    className={`p-3.5 rounded-xl border text-left transition-all group flex flex-col justify-between relative overflow-hidden ${
-                      hasBar
-                        ? 'bg-hy-bg border-hy-danger/50 hover:border-hy-danger shadow-md shadow-hy-danger/5'
-                        : 'bg-hy-bg/60 border-hy-elevated text-hy-text-3 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full mb-2">
-                      <div className="flex items-center gap-2">
-                        <Dumbbell className={`w-4 h-4 ${hasBar ? 'text-hy-danger' : 'text-hy-text-3'}`} />
-                        <span className={`text-xs font-bold ${hasBar ? 'text-white' : 'text-hy-text-2'}`}>
-                          Pull-Up Bar
-                        </span>
-                      </div>
-                      <span className={`text-xs font-black px-2 py-0.5 rounded-md border flex items-center gap-1 ${
-                        hasBar
-                          ? 'bg-hy-danger/20 text-hy-danger border-hy-danger/40'
-                          : 'bg-hy-elevated text-hy-text-2 border-hy-border'
-                      }`}>
-                        {hasBar ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                        {hasBar ? 'ON' : 'OFF'}
-                      </span>
-                    </div>
-
-                    <div className="text-xs text-hy-text-2 leading-tight">
-                      {hasBar 
-                        ? 'Pull-ups, chin-ups & hanging core active'
-                        : 'Turned off • Bar exercises excluded'}
-                    </div>
-                  </button>
-                </div>
-
-                {/* Dynamic Mode Preview Banner */}
-                <div 
-                  className="p-3.5 rounded-xl border space-y-2 transition-all"
-                  style={{
-                    backgroundColor: `${modeDetails.color}0D`,
-                    borderColor: `${modeDetails.color}33`,
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span 
-                      className="text-xs font-black tracking-wide"
-                      style={{ color: modeDetails.color }}
-                    >
-                      {modeDetails.badge}
-                    </span>
-                    <span className="text-xs text-hy-text-2 font-semibold">
-                      {modeDetails.gearSummary}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {modeDetails.description}
-                  </p>
-
-                  {mode === 'no-equipment' && (
-                    <div className="pt-1 border-t border-emerald-500/20 flex items-center justify-between">
-                      <span className="text-xs text-emerald-400 font-semibold">
-                        Rowan Row 45-Min Full Body Workout
-                      </span>
-                      <a
-                        href="https://youtu.be/cDq-nFmD0rI?si=hdyLbUNXDfW-K79f"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-bold text-white bg-emerald-600/30 hover:bg-emerald-600/50 px-2 py-0.5 rounded border border-emerald-500/40 transition-colors"
-                      >
-                        <span>View Source Video</span>
-                        <ExternalLink className="w-2.5 h-2.5" />
-                      </a>
-                    </div>
-                  )}
-                </div>
-
                 {/* Slovic Calibration Quick-Reload (Only visible when bands are enabled) */}
                 {hasBands && (
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-hy-text-2 font-medium">Slovic Calibration:</span>
+                      <span />
                       <button
                         type="button"
                         onClick={handleLoadSlovicLoopBands}
                         className="text-xs font-bold text-hy-volt hover:underline flex items-center gap-1 active:scale-95 transition-transform"
                       >
                         <Sparkles className="w-3 h-3 text-hy-warning" />
-                        <span>Reload Slovic 5-Band Kit</span>
+                        <span>Load Slovic kit</span>
                       </button>
                     </div>
 
                     {reloadedToast && (
                       <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs font-bold text-emerald-400 flex items-center gap-2 animate-fadeIn">
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span>All 5 Slovic Natural Latex Loop Bands (3 to 60 kg) loaded!</span>
+                        <span>Slovic kit loaded</span>
                       </div>
                     )}
                   </div>
@@ -509,7 +286,7 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
             <div className="flex items-center justify-between pb-2.5 border-b border-hy-elevated">
               <div className="flex items-center gap-2.5">
                 <Layers className="w-4 h-4 text-hy-primary" />
-                <h3 className="text-sm font-bold text-white">Active Band Kit ({profile.ownedBands.length})</h3>
+                <h3 className="text-sm font-bold text-white">Bands ({profile.ownedBands.length})</h3>
               </div>
 
               <div className="flex items-center gap-1.5">
@@ -561,11 +338,6 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
                     <div>
                       <div className="text-xs font-bold text-white flex items-center gap-1.5">
                         <span>{band.name}</span>
-                        {band.brand === 'Slovic' && (
-                          <span className="text-xs px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-black">
-                            SLOVIC
-                          </span>
-                        )}
                       </div>
                       <div className="text-xs text-hy-text-2 mt-0.5">
                         Rated {bandRangeLabel(band, profile.unitSystem)} • {band.type}
@@ -674,7 +446,7 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
           <div className="hy-card p-5 space-y-3">
             <div className="flex items-center gap-2.5 pb-2.5 border-b border-hy-elevated">
               <User className="w-4 h-4 text-hy-primary" />
-              <h3 className="text-sm font-bold text-white">Personal Metrics</h3>
+              <h3 className="text-sm font-bold text-white">Body</h3>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
@@ -793,10 +565,7 @@ export const ProfileAndBandsModal: React.FC<ProfileAndBandsModalProps> = ({
 
           {/* 6. DATA PORTABILITY (EXPORT / IMPORT JSON BACKUP) */}
           <div className="hy-card p-5 space-y-3">
-            <h3 className="text-sm font-bold text-white">Data Management</h3>
-            <p className="text-xs text-hy-text-2">
-              Export your entire workout history, custom routines, and band settings as JSON for safe keeping.
-            </p>
+            <h3 className="text-sm font-bold text-white">Data</h3>
 
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button
