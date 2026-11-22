@@ -6,6 +6,7 @@ import {
   EXERCISE_DATABASE, getExerciseById, getExerciseVideoCue, getExerciseYoutubeUrl, VIDEO_SOURCES,
 } from '../../data/exerciseDatabase';
 import { describeTempo } from '../../data/extraExercises';
+import { HOW_TO } from '../../data/howTo';
 import { WorkoutAvatar } from '../Common/WorkoutAvatar';
 
 const MUSCLES = ['All', 'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core', 'Full Body'];
@@ -225,17 +226,7 @@ export const ExerciseDetail: React.FC<{
             )}
           </section>
 
-          <section>
-            <h2 className="text-base font-bold text-hy-text mb-3">How to</h2>
-            <ol className="space-y-2.5">
-              {ex.instructions.map((step, i) => (
-                <li key={i} className="flex gap-3 text-sm text-hy-text-2">
-                  <span className="w-6 h-6 rounded-full bg-hy-surface text-hy-text text-xs flex items-center justify-center shrink-0">{i + 1}</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-          </section>
+          <HowToSteps ex={ex} />
 
           {ex.commonMistakes?.length ? (
             <section>
@@ -267,5 +258,45 @@ export const ExerciseDetail: React.FC<{
         </div>
       </div>
     </div>
+  );
+};
+
+/** Full written instructions: setup, numbered steps, breathing and what you should feel. */
+export const HowToSteps: React.FC<{ ex: Exercise; compact?: boolean }> = ({ ex, compact }) => {
+  const h = HOW_TO[ex.id];
+  const steps = h?.steps ?? ex.instructions;
+  return (
+    <section className={compact ? 'space-y-3 text-left' : 'space-y-4'}>
+      {!compact && <h2 className="text-base font-bold text-hy-text">How to do it</h2>}
+      {h?.setup && (
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-hy-text-3 mb-1">Set up</div>
+          <p className="text-sm text-hy-text-2 leading-relaxed">{h.setup}</p>
+        </div>
+      )}
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-hy-text-3 mb-2">Each rep</div>
+        <ol className="space-y-2.5">
+          {steps.map((step, i) => (
+            <li key={i} className="flex gap-3 text-sm text-hy-text-2 leading-relaxed">
+              <span className="w-6 h-6 rounded-full bg-hy-surface text-hy-text text-xs flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      {h && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className="rounded-2xl bg-hy-surface p-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-hy-text-3 mb-1">Breathing</div>
+            <p className="text-sm text-hy-text-2 leading-relaxed">{h.breathe}</p>
+          </div>
+          <div className="rounded-2xl bg-hy-surface p-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-hy-text-3 mb-1">You should feel it</div>
+            <p className="text-sm text-hy-text-2 leading-relaxed">{h.feel}</p>
+          </div>
+        </div>
+      )}
+    </section>
   );
 };
