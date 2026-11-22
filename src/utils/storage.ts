@@ -124,6 +124,14 @@ export function getTodayDateString(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+/** Formats any ISO/timestamp or Date object into a local 'YYYY-MM-DD' string to avoid UTC day-shift bugs. */
+export function toLocalDateString(dateInput: string | Date | undefined | null): string {
+  if (!dateInput) return '';
+  const d = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 // PROFILE
 export function loadUserProfile(): UserProfile {
   const stored = read<Partial<UserProfile>>(KEYS.PROFILE);
@@ -170,9 +178,21 @@ export function loadWorkoutLogs(): WorkoutSessionLog[] {
 
 export function saveWorkoutLog(log: WorkoutSessionLog): void {
   const existing = loadWorkoutLogs();
-  write(KEYS.WORKOUT_LOGS, [log, ...existing]);
+  // If log with same id exists, replace it, otherwise prepend
+  const exists = existing.some(l => l.id === log.id);
+  const updated = exists ? existing.map(l => (l.id === log.id ? log : l)) : [log, ...existing];
+  write(KEYS.WORKOUT_LOGS, updated);
   const profile = loadUserProfile();
   profile.lastWorkoutDate = log.date;
+  saveUserProfile(profile);
+}
+
+export function deleteWorkoutLog(id: string): void {
+  const existing = loadWorkoutLogs();
+  const filtered = existing.filter(l => l.id !== id);
+  write(KEYS.WORKOUT_LOGS, filtered);
+  const profile = loadUserProfile();
+  profile.lastWorkoutDate = filtered[0]?.date;
   saveUserProfile(profile);
 }
 
@@ -183,6 +203,17 @@ export function getAllNutritionLogs(): Record<string, DailyNutritionLog> {
 
 // BACKUP & RESTORE
 export function exportAllData(): string {
+  let scheduleMode: string | undefined;
+  let workdayTier: number | undefined;
+  let restExtras: Record<string, number> | undefined;
+  try {
+    scheduleMode = localStorage.getItem('bandfit_schedule_mode') || undefined;
+    const tierRaw = localStorage.getItem('bandfit_workday_tier');
+    workdayTier = tierRaw ? Number(tierRaw) : undefined;
+    const restRaw = localStorage.getItem('hyten_rest_extra');
+    restExtras = restRaw ? JSON.parse(restRaw) : undefined;
+  } catch {}
+
   return JSON.stringify(
     {
       app: 'HyTen',
@@ -192,6 +223,9 @@ export function exportAllData(): string {
       routines: loadRoutines().filter(r => (r as Routine).isCustom),
       workoutLogs: loadWorkoutLogs(),
       nutritionLogs: getAllNutritionLogs(),
+      scheduleMode,
+      workdayTier,
+      restExtras,
     },
     null,
     2
@@ -246,13 +280,29 @@ export function importAllData(jsonStr: string): ImportResult {
   if (parsed.routines) write(KEYS.ROUTINES, parsed.routines);
   if (logs) write(KEYS.WORKOUT_LOGS, logs);
   if (parsed.nutritionLogs) write(KEYS.NUTRITION_LOGS, parsed.nutritionLogs);
+  if (parsed.scheduleMode) {
+    try { localStorage.setItem('bandfit_schedule_mode', parsed.scheduleMode); } catch {}
+  }
+  if (parsed.workdayTier) {
+    try { localStorage.setItem('bandfit_workday_tier', String(parsed.workdayTier)); } catch {}
+  }
+  if (parsed.restExtras) {
+    try { localStorage.setItem('hyten_rest_extra', JSON.stringify(parsed.restExtras)); } catch {}
+  }
   localStorage.setItem(KEYS.SCHEMA, String(SCHEMA_VERSION));
   return { ok: true, workouts: logs?.length ?? 0 };
 }
 
 export function resetAllDataToFresh(): void {
   try {
-    [KEYS.WORKOUT_LOGS, KEYS.NUTRITION_LOGS, KEYS.ROUTINES].forEach(k => localStorage.removeItem(k));
+    [
+      KEYS.WORKOUT_LOGS,
+      KEYS.NUTRITION_LOGS,
+      KEYS.ROUTINES,
+      'bandfit_schedule_mode',
+      'bandfit_workday_tier',
+      'hyten_rest_extra',
+    ].forEach(k => localStorage.removeItem(k));
     Object.values(LEGACY_KEYS).forEach(k => localStorage.removeItem(k));
     write(KEYS.PROFILE, { ...DEFAULT_PROFILE, onboarded: true });
     localStorage.setItem(KEYS.SCHEMA, String(SCHEMA_VERSION));

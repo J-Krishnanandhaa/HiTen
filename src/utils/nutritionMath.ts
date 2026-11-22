@@ -1,4 +1,5 @@
 import { UserProfile, WorkoutSessionLog } from '../types';
+import { toLocalDateString } from './storage';
 
 /**
  * MET values from the 2024 Adult Compendium of Physical Activities.
@@ -83,8 +84,8 @@ export function calculateWeeklyCalorieBurn(workoutLogs: WorkoutSessionLog[]): {
     dayDate.setDate(monday.getDate() + i);
     const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
     
-    // Sum workout calories for this day
-    const dayWorkouts = workoutLogs.filter(log => log.date.startsWith(dateStr));
+    // Sum workout calories for this day using local calendar date
+    const dayWorkouts = workoutLogs.filter(log => toLocalDateString(log.date) === dateStr);
     const dayCals = dayWorkouts.reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
     weekTotal += dayCals;
 
