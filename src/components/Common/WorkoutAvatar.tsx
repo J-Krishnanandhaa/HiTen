@@ -1,16 +1,8 @@
 import React, { useMemo } from 'react';
 import { AvatarAnimationType, AnchorPosition } from '../../types';
 
-/** Animations added for the full 40-exercise library. Add these keys to `AvatarAnimationType` in src/types/index.ts. */
-export type ExtraAvatarAnimationType =
-  | 'hanging-knee-raise' | 'spine-decompression-hang' | 'archer-pushup' | 'incline-press'
-  | 'single-arm-row' | 'front-raise' | 'mid-face-pull' | 'hammer-curl' | 'concentration-curl'
-  | 'behind-back-curl' | 'reverse-curl' | 'reverse-lunge' | 'rdl' | 'good-morning' | 'monster-walk'
-  // bodyweight / no-equipment movements
-  | 'burpee' | 'mountain-climbers' | 'v-up' | 'bicycle-crunch' | 'plank-shoulder-tap' | 'pike-pushup'
-  | 'pushup-downward-dog' | 'diamond-pushup' | 'superman-pulse' | 'jump-squat' | 'sumo-squat' | 'dead-hang'
-  // band-free variants of rigs that otherwise draw a band
-  | 'chinup-strict' | 'archer-pushup-bodyweight' | 'pushup-standard' | 'air-squat' | 'reverse-lunge-bodyweight' | 'calf-raise-bodyweight' | 'glute-bridge-bodyweight';
+import type { ExtraAvatarAnimationType } from '../../types';
+export type { ExtraAvatarAnimationType };
 export type WorkoutAvatarAnimation = AvatarAnimationType | ExtraAvatarAnimationType;
 
 interface WorkoutAvatarProps {
@@ -83,7 +75,11 @@ interface Spec {
   handles?: boolean;
   bandsOnTop?: boolean;
   dur?: number;
+  /** Static scenery drawn behind the athlete (bench, box, table, door frame, dip bar). */
+  props?: PropSpec[];
 }
+
+interface PropSpec { kind: 'bench' | 'box' | 'table' | 'post' | 'dipbar'; x: number; y: number; w?: number }
 
 const TH = 44, SH = 42, UA = 29, FA = 26, HND = 7, LUMBAR = 26, CHEST = 30, NECK = 24;
 const FOOT_SIDE = 17, FOOT_FRONT = 10;
@@ -767,6 +763,263 @@ SPECS['reverse-lunge-bodyweight'] = noBands({ ...SPECS['reverse-lunge'], rest: {
 SPECS['calf-raise-bodyweight'] = noBands(SPECS['calf-raise']);
 SPECS['glute-bridge-bodyweight'] = noBands(SPECS['glute-bridge']);
 
+/* -------------------------------------------------------------------------- */
+/*  DEDICATED RIGS: one accurate movement per exercise (no shared stand-ins).  */
+/* -------------------------------------------------------------------------- */
+const FLOOR = 241;
+// straight body line of `len` from a planted point at angle `a` (deg)
+const along = (from: Pt, a: number, len: number): Pt => add(from, vec(a, len));
+
+Object.assign(SPECS, {
+  /* prone, head right: both heels curl toward the glutes against a low door anchor */
+  'prone-leg-curl': {
+    view: 'side', anchors: [P(36, 214)], elbow: [-1, -1], dur: 2.6,
+    rest: { hip: P(116, 226), torso: -3, chest: -12, head: -16, arm: P(222, 238), hand: 0, leg: [180, 180], foot: 95 },
+    peak: { hip: P(116, 226), torso: -3, chest: -12, head: -16, arm: P(222, 238), hand: 0, leg: [180, 292], foot: 205 },
+    bands: [{ a: P(42, 214), b: { j: 'ankleN' }, natural: 62 }],
+    glows: [{ b: 'thN', t: 0.55, r: 14, dy: -4 }, { b: 'tor', t: 0.05, r: 13, dy: -5 }],
+  },
+
+  /* bridge held, heels slide out to straight legs and pull back in */
+  'slider-leg-curl': {
+    view: 'side', dur: 2.8,
+    rest: { hip: P(136, 214), torso: 164, head: 180, arm: [6, 4], leg: P(219, 236), legF: P(222, 236), foot: -70 },
+    peak: { hip: P(133, 210), torso: 160, head: 180, arm: [6, 4], leg: P(186, 236), legF: P(190, 236), foot: -15 },
+    glows: [{ b: 'thN', t: 0.55, r: 15, dy: 4 }, { b: 'tor', t: 0.1, r: 13 }],
+  },
+
+  /* kneeling, ankles anchored: body falls forward as one plank, hands catch, push back up */
+  'nordic-negative': (() => {
+    const K = P(112, 236);
+    const at = (lean: number, arm: Limb): Pose => {
+      const a = -90 + lean; // knee -> hip direction
+      const hip = along(K, a, TH);
+      return { hip, torso: a, chest: a, head: a - 4, leg: [a + 180, 180], foot: 180, arm };
+    };
+    const UP = at(0, R(14, 26)), DOWN = at(58, R(14, 26)), CATCH = at(68, P(232, 238)), PUSH = at(44, R(18, 30));
+    return {
+      view: 'side', anchors: [P(36, 214)], dur: 5,
+      rest: UP, peak: DOWN,
+      seq: [{ at: 0, pose: UP }, { at: 8, pose: UP }, { at: 58, pose: DOWN }, { at: 66, pose: CATCH }, { at: 80, pose: PUSH }, { at: 100, pose: UP }],
+      bands: [{ a: P(42, 214), b: { j: 'ankleN' }, natural: 70 }],
+      glows: [{ b: 'thN', t: 0.5, r: 15, dy: -4 }, { b: 'tor', t: 0.2, r: 12 }],
+    } as Spec;
+  })(),
+
+  /* hinge on one leg while the free leg extends back in line with the torso */
+  'single-leg-rdl': {
+    view: 'side', handles: true, dur: 3,
+    rest: { hip: P(139.5, 151), torso: -90, head: -90, leg: P(141, 236), legF: [94, 92], foot: 0, footF: 20, arm: [92, 90] },
+    peak: { hip: P(126, 158), torso: -12, chest: -10, head: -14, leg: P(141, 236), legF: [186, 186], foot: 0, footF: 270, arm: [90, 90] },
+    bands: [FLOOR_BAND('footN', 70)],
+    glows: [{ b: 'thN', t: 0.35, r: 14, dy: 4 }, { b: 'tor', t: 0.1, r: 14 }],
+  },
+
+  /* one foot planted, the other hooked behind */
+  'single-leg-calf-raise': {
+    view: 'side', dur: 2.2,
+    rest: { hip: P(138, 151), torso: -90, leg: P(136, 236), legF: [96, 160], foot: 0, footF: 200, arm: [92, 90] },
+    peak: { hip: P(145, 142), torso: -90, leg: P(147.3, 227.2), legF: [96, 160], foot: 62, footF: 200, arm: [92, 90] },
+    glows: [{ b: 'shN', t: 0.35, r: 12, dy: 4 }],
+  },
+
+  /* rear foot on a bench, straight drop of the hips */
+  'bulgarian-split-squat': {
+    view: 'side', props: [{ kind: 'bench', x: 26, y: 196, w: 62 }], dur: 2.8,
+    rest: { hip: P(128, 152), torso: -88, head: -88, leg: P(168, 236), legF: P(76, 194), foot: 0, footF: 150, arm: [92, 90] },
+    peak: { hip: P(118, 190), torso: -80, chest: -82, head: -84, leg: P(168, 236), legF: P(76, 194), foot: 0, footF: 150, arm: [94, 88] },
+    glows: [{ b: 'thN', t: 0.5, r: 15 }, { b: 'tor', t: 0.05, r: 13 }],
+  },
+
+  /* step onto a box, stand tall, step back down */
+  'step-up': (() => {
+    const BOX = 194;
+    const STAND: Pose = { hip: P(104, 151), torso: -90, head: -90, leg: P(102, 236), legF: P(107, 236), foot: 0, arm: [92, 90] };
+    const FOOT_UP: Pose = { hip: P(112, 152), torso: -84, head: -86, leg: P(172, BOX - 5), legF: P(107, 236), foot: 0, footF: 0, arm: [100, 92], armF: [80, 86] };
+    const DRIVE: Pose = { hip: P(150, 128), torso: -78, head: -82, leg: P(172, BOX - 5), legF: P(140, 200), foot: 0, footF: 60, arm: [80, 86], armF: [100, 92] };
+    const TOP: Pose = { hip: P(170, 105), torso: -90, head: -90, leg: P(172, BOX - 5), legF: P(176, BOX - 5), foot: 0, footF: 0, arm: [92, 90] };
+    return {
+      view: 'side', props: [{ kind: 'box', x: 150, y: BOX, w: 70 }], dur: 4.2,
+      rest: STAND, peak: TOP,
+      seq: [{ at: 0, pose: STAND }, { at: 16, pose: FOOT_UP }, { at: 32, pose: DRIVE }, { at: 44, pose: TOP }, { at: 56, pose: TOP },
+        { at: 70, pose: DRIVE }, { at: 84, pose: FOOT_UP }, { at: 100, pose: STAND }],
+      glows: [{ b: 'thN', t: 0.5, r: 15 }, { b: 'tor', t: 0.05, r: 13 }],
+    } as Spec;
+  })(),
+
+  /* front view: wide stance, sit into one hip, other leg stays straight */
+  'side-lunge': {
+    view: 'front', knee: FRONT_KNEES, elbow: [1, -1], dur: 2.8,
+    rest: { hip: P(140, 147), torso: -90, leg: P(104, 229), legF: P(176, 229), foot: 90, arm: P(134, 120), armF: P(146, 120) },
+    peak: { hip: P(110, 181), torso: -84, chest: -86, leg: P(104, 229), legF: P(176, 229), foot: 90, arm: P(118, 150), armF: P(130, 152) },
+    glows: [{ b: 'thN', t: 0.45, r: 15 }, { b: 'thF', t: 0.4, r: 11 }],
+  },
+
+  /* single-leg squat holding a door frame, free leg straight out front */
+  'pistol-assisted': {
+    view: 'side', props: [{ kind: 'post', x: 186, y: 30 }], elbow: [1, 1], dur: 3.2,
+    rest: { hip: P(139.5, 151), torso: -90, head: -90, leg: P(138, 236), legF: [80, 84], foot: 0, footF: 10, arm: P(184, 128), armF: P(184, 132), hand: -90 },
+    peak: { hip: P(108, 202), torso: -58, chest: -54, head: -62, leg: P(138, 236), legF: [-6, -6], foot: 0, footF: -70, arm: P(184, 160), armF: P(184, 164), hand: -90 },
+    glows: [{ b: 'thN', t: 0.5, r: 15 }, { b: 'tor', t: 0.05, r: 13 }],
+  },
+
+  /* front view: hands rise close to the chin, elbows lead high and wide */
+  'upright-row': {
+    view: 'front', handles: true, knee: FRONT_KNEES, elbow: [1, -1], dur: 2.5,
+    rest: { ...FS, arm: P(134, 150), armF: P(146, 150), hand: 90, handF: 90 },
+    peak: { ...FS, arm: P(134, 98), armF: P(146, 98), hand: -90, handF: -90 },
+    bands: [{ ...FLOOR_BAND('footN', 70, 'handN', 9) }, { ...FLOOR_BAND('footN', 70, 'handF', 9) }],
+    glows: [{ b: 'uaN', t: 0.15, r: 12 }, { b: 'uaF', t: 0.15, r: 12 }, { b: 'ch', t: 0.92, r: 12 }],
+  },
+
+  /* front view: straight arms pull the band apart at chest height */
+  'pull-apart': {
+    view: 'front', knee: FRONT_KNEES, elbow: [1, -1], bandsOnTop: true, dur: 2.4,
+    rest: { ...FS, arm: P(132, 104), armF: P(148, 104), hand: 0, handF: 180 },
+    peak: { ...FS, arm: P(70, 92), armF: P(210, 92), hand: 180, handF: 0 },
+    bands: [{ a: { j: 'handN' }, b: { j: 'handF' }, natural: 30 }],
+    glows: [{ b: 'uaN', t: 0.1, r: 12 }, { b: 'uaF', t: 0.1, r: 12 }, { b: 'ch', t: 0.75, r: 14 }],
+  },
+
+  /* arms locked overhead through a full squat */
+  'overhead-squat': {
+    view: 'side', handles: true, dur: 3,
+    rest: { ...SS, head: -90, arm: [-96, -96] },
+    peak: { hip: P(98, 186), torso: -66, chest: -62, head: -74, leg: P(137, 236), legF: P(142, 236), foot: 0, arm: [-104, -104] },
+    bands: [FLOOR_BAND('footN', 150)],
+    glows: [{ b: 'thN', t: 0.45, r: 14 }, { b: 'uaN', t: 0.2, r: 11 }, { b: 'tor', t: 0.3, r: 14, dy: -6 }],
+  },
+
+  /* support on a straight bar, lean in and dip until the bar meets the hips */
+  'bar-dip': {
+    view: 'side', props: [{ kind: 'dipbar', x: 168, y: 128 }], elbow: [-1, -1], dur: 2.8,
+    rest: { hip: P(146, 118), torso: -76, head: -82, arm: P(166, 120), hand: 0, leg: [100, 150], foot: 150 },
+    peak: { hip: P(126, 152), torso: -52, head: -60, arm: P(166, 120), hand: 0, leg: [118, 168], foot: 168 },
+    bands: [{ a: P(168, 128), b: { j: 'hip', dx: -8, dy: 43 }, natural: 40 }],
+    glows: [{ b: 'uaN', t: 0.5, r: 13, dy: 3 }, { b: 'ch', t: 0.6, r: 13, dy: 6 }],
+  },
+
+  /* hands on a bench behind, legs out, hips drop straight down */
+  'bench-dip': {
+    view: 'side', props: [{ kind: 'bench', x: 46, y: 196, w: 62 }], elbow: [-1, -1], dur: 2.6,
+    rest: { hip: P(122, 196), torso: -95, head: -88, arm: P(104, 194), hand: 180, leg: P(198, 236), legF: P(202, 236), foot: -40 },
+    peak: { hip: P(119, 226), torso: -92, head: -86, arm: P(104, 194), hand: 180, leg: P(198, 236), legF: P(202, 236), foot: -40 },
+    glows: [{ b: 'uaN', t: 0.5, r: 13, dy: 3 }, { b: 'ch', t: 0.85, r: 11 }],
+  },
+
+  /* hinged torso, upper arm pinned, forearm extends straight back */
+  'tricep-kickback': {
+    view: 'side', handles: true, anchors: [], dur: 2.4,
+    rest: { hip: P(110, 160), torso: -42, chest: -38, head: -30, leg: P(140, 236), legF: P(146, 236), foot: 0, arm: [150, 88], armF: [100, 92] },
+    peak: { hip: P(110, 160), torso: -42, chest: -38, head: -30, leg: P(140, 236), legF: P(146, 236), foot: 0, arm: [152, 154], armF: [100, 92] },
+    bands: [FLOOR_BAND('footN', 62)],
+    glows: [{ b: 'uaN', t: 0.5, r: 12, dy: 3 }],
+  },
+
+  /* feet by the frame, lean back on straight arms, row the chest to the frame */
+  'doorframe-row': (() => {
+    const A = P(176, 236), HAND = P(200, 112);
+    const pose = (lean: number): Pose => {
+      const a = -90 - lean;
+      const hip = along(A, a, TH + SH - 1);
+      return { hip, torso: a, head: a + 2, leg: A, legF: P(A.x + 4, A.y), foot: 0, arm: HAND, hand: -90 };
+    };
+    return {
+      view: 'side', props: [{ kind: 'post', x: 202, y: 18 }], elbow: [1, 1], dur: 2.6,
+      rest: pose(16), peak: pose(4),
+      glows: [{ b: 'ch', t: 0.5, r: 16, dy: -7 }, { b: 'uaN', t: 0.5, r: 11, dy: 3 }],
+    } as Spec;
+  })(),
+
+  /* under a table, heels down, body straight: pull the chest to the table edge */
+  'table-row': (() => {
+    const A = P(58, 236), HAND = P(192, 126);
+    const pose = (a: number): Pose => ({ hip: along(A, a, TH + SH - 1), torso: a, head: a - 6, leg: A, legF: P(A.x + 3, A.y), foot: -80, arm: HAND, hand: -90 });
+    return {
+      view: 'side', props: [{ kind: 'table', x: 170, y: 118, w: 100 }], elbow: [1, 1], dur: 2.6,
+      rest: pose(-21), peak: pose(-38),
+      glows: [{ b: 'ch', t: 0.5, r: 16, dy: 7 }, { b: 'uaN', t: 0.5, r: 11, dy: 3 }],
+    } as Spec;
+  })(),
+
+  /* jump to the top, then a slow 4-second lowering */
+  'negative-pullup': (() => {
+    const base = pull(26, 42, false, 10);
+    return { ...base, dur: 5.6, seq: [{ at: 0, pose: base.rest }, { at: 10, pose: base.peak }, { at: 20, pose: base.peak }, { at: 92, pose: base.rest }, { at: 100, pose: base.rest }] } as Spec;
+  })(),
+
+  /* hands on a bench: same push-up, steeper body angle */
+  'incline-pushup': (() => {
+    const A = P(75, 228), HAND = P(203, 191);
+    const pose = (a: number): Pose => ({ hip: along(A, a, TH + SH), torso: a, head: a - 10, leg: A, foot: 70, arm: HAND, hand: 0 });
+    return {
+      view: 'side', props: [{ kind: 'bench', x: 186, y: 196, w: 70 }], dur: 2.6,
+      rest: pose(-39), peak: pose(-28),
+      glows: [{ b: 'ch', t: 0.55, r: 15, dy: 6 }, { b: 'uaN', t: 0.5, r: 11, dy: 3 }],
+    } as Spec;
+  })(),
+
+  /* knees down, feet up, straight line knee to shoulder */
+  'knee-pushup': (() => {
+    const K = P(110, 236), HAND = P(207, 237.5);
+    const pose = (a: number): Pose => ({ hip: along(K, a, TH), torso: a, head: a - 12, leg: [a + 180, 212], foot: 236, arm: HAND, hand: 0 });
+    return {
+      view: 'side', dur: 2.6,
+      rest: pose(-32.6), peak: pose(-11),
+      glows: [{ b: 'ch', t: 0.55, r: 15, dy: 6 }, { b: 'uaN', t: 0.5, r: 11, dy: 3 }],
+    } as Spec;
+  })(),
+
+  /* straight-arm plank: shoulders slide forward past the hands and back */
+  'planche-lean': {
+    view: 'side', dur: 3,
+    rest: { ...PLANK_TOP },
+    peak: { hip: P(179.8, 203.6), torso: -18, head: -30, arm: P(215, HAND_Y), armF: P(215, HAND_Y), hand: 0, leg: P(98, 230), foot: 50 },
+    glows: [{ b: 'uaN', t: 0.15, r: 13 }, { b: 'ch', t: 0.6, r: 13, dy: 6 }, { b: 'tor', t: 0.5, r: 12, dy: 6 }],
+  },
+
+  /* tuck front lever: from a dead hang, hips rise until the back is level */
+  'front-lever-raise': {
+    view: 'side', elbow: [-1, -1], bar: 'side', barX: 144, dur: 3.2,
+    rest: { hip: P(140, 146), torso: -90, head: -90, arm: P(144, 36), armF: P(146, 36), hand: -90, leg: [90, 90], foot: 30 },
+    peak: { hip: P(177, 86), torso: -180, head: -186, arm: P(144, 36), armF: P(146, 36), hand: -90, leg: [158, 22], foot: 22 },
+    bands: [{ a: P(150, 36), b: { j: 'hip' }, natural: 100 }],
+    glows: [{ b: 'ch', t: 0.4, r: 16, dy: -6 }, { b: 'tor', t: 0.5, r: 14 }, { b: 'uaN', t: 0.3, r: 11 }],
+  },
+
+  /* slow plank knee drive: one knee pulls all the way to the chest, hips stay level */
+  'plank-knee-crunch': {
+    view: 'side', dur: 2.6,
+    rest: { ...PLANK_TOP, leg: P(80, 227), legF: P(80, 227), foot: 70, footF: 70 },
+    peak: { ...PLANK_TOP, hip: P(163, 196), torso: -22, head: -36, leg: P(80, 227), legF: P(184, 214), foot: 70, footF: 95 },
+    glows: [{ b: 'tor', t: 0.5, r: 15, dy: 6 }, { b: 'thF', t: 0.25, r: 12 }],
+  },
+
+  /* supine, shoulders lifted, straight legs alternate up and down */
+  'leg-scissors': {
+    view: 'side', dur: 1.6,
+    rest: { hip: P(134, 229), torso: 180, chest: 190, head: 198, arm: [6, 4], leg: [-42, -42], legF: [-12, -12], foot: -42, footF: -12 },
+    peak: { hip: P(134, 229), torso: 180, chest: 190, head: 198, arm: [6, 4], leg: [-12, -12], legF: [-42, -42], foot: -12, footF: -42 },
+    glows: [{ b: 'tor', t: 0.5, r: 15, dy: 5 }, { b: 'thN', t: 0.15, r: 12 }],
+  },
+
+  /* supine, knees bent, arms by the ears: curl the shoulders up */
+  'long-arm-crunch': {
+    view: 'side', dur: 2.4,
+    rest: { hip: P(136, 229), torso: 180, chest: 180, head: 180, arm: [181, 181], leg: P(182, 236), legF: P(186, 236), foot: 0 },
+    peak: { hip: P(136, 229), torso: 182, chest: 212, head: 218, arm: [222, 222], leg: P(182, 236), legF: P(186, 236), foot: 0 },
+    glows: [{ b: 'ch', t: 0.4, r: 15, dy: 5 }, { b: 'tor', t: 0.6, r: 13, dy: 5 }],
+  },
+
+  /* front view side plank on one hand: top arm reaches up, then threads under the body */
+  'side-plank-rotation': {
+    view: 'front', knee: FRONT_KNEES, elbow: [1, -1], dur: 3,
+    rest: { hip: P(134.5, 193), torso: -30, head: -30, leg: P(60, 236), legF: P(64, 232), foot: 0, footF: 0, arm: [-92, -92], armF: P(196, 236), handF: 0 },
+    peak: { hip: P(140, 200), torso: -26, chest: -14, head: -4, leg: P(60, 236), legF: P(64, 232), foot: 0, footF: 0, arm: [118, 150], armF: P(196, 236), handF: 0 },
+    glows: [{ b: 'tor', t: 0.5, r: 15 }, { b: 'ch', t: 0.3, r: 13 }],
+  },
+} as Record<string, Spec>);
+
 /** exerciseDatabase `id` -> animation key (all 56 library exercises). Use as `avatarAnimation: EXERCISE_ANIMATION_MAP[id]`. */
 export const EXERCISE_ANIMATION_MAP: Record<string, WorkoutAvatarAnimation> = {
   'bar-pullup-assisted': 'pullup-assisted', 'bar-band-lat-pulldown': 'lat-pulldown', 'bent-over-row-feet': 'bent-over-row',
@@ -975,6 +1228,40 @@ const PullUpBarSide: React.FC<{ x: number }> = ({ x }) => (
     <circle cx={x - 2} cy="27.5" r="2.2" fill="#EF5350" opacity="0.9" />
   </g>
 );
+
+const PROP_FILL = '#2B3441', PROP_TOP = '#3D4858', PROP_EDGE = '#5B6B80';
+const Prop: React.FC<{ p: PropSpec }> = ({ p }) => {
+  const w = p.w ?? 12;
+  switch (p.kind) {
+    case 'bench':
+      return (
+        <g>
+          <rect x={p.x + 5} y={p.y + 6} width="5" height={FLOOR - p.y - 6} fill={PROP_FILL} />
+          <rect x={p.x + w - 10} y={p.y + 6} width="5" height={FLOOR - p.y - 6} fill={PROP_FILL} />
+          <rect x={p.x} y={p.y} width={w} height="9" rx="3" fill={PROP_TOP} stroke={PROP_EDGE} strokeWidth="1.2" />
+        </g>
+      );
+    case 'box':
+      return <rect x={p.x} y={p.y} width={w} height={FLOOR - p.y} rx="4" fill={PROP_FILL} stroke={PROP_EDGE} strokeWidth="1.2" />;
+    case 'table':
+      return (
+        <g>
+          <rect x={p.x + w - 12} y={p.y + 7} width="6" height={FLOOR - p.y - 7} fill={PROP_FILL} />
+          <rect x={p.x} y={p.y} width={w} height="8" rx="2.5" fill={PROP_TOP} stroke={PROP_EDGE} strokeWidth="1.2" />
+        </g>
+      );
+    case 'post':
+      return <rect x={p.x} y={p.y} width={w} height={FLOOR - p.y} rx="3" fill={PROP_TOP} stroke={PROP_EDGE} strokeWidth="1.2" />;
+    case 'dipbar':
+      return (
+        <g>
+          <rect x={p.x - 3} y={p.y} width="6" height={FLOOR - p.y} fill={PROP_FILL} />
+          <circle cx={p.x} cy={p.y} r="7" fill="url(#barMetalRed)" stroke="#B71C1C" strokeWidth="1.5" />
+          <circle cx={p.x - 2} cy={p.y - 2} r="2.2" fill="#EF5350" opacity="0.9" />
+        </g>
+      );
+  }
+};
 
 const DoorAnchor: React.FC<{ p: Pt }> = ({ p }) =>
   p.y < 60 ? (
@@ -1207,6 +1494,7 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
         {showBarFront && <PullUpBarFront />}
         {sideBarX !== undefined && <PullUpBarSide x={sideBarX} />}
         {anchors.map((a, i) => <DoorAnchor key={`anc${i}`} p={a} />)}
+        {(spec.props ?? []).map((pr, i) => <Prop key={`prop${i}`} p={pr} />)}
 
         {/* BLUE: foot / toe anchored band loops lie on the mat */}
         {floorLoops}

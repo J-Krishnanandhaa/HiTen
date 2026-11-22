@@ -113,7 +113,7 @@ export interface Exercise {
   tips: string;
   estimatedCaloriesPerMin: number;
   iconType?: string;
-  avatarAnimation?: AvatarAnimationType;
+  avatarAnimation?: AvatarAnimationType | ExtraAvatarAnimationType;
   youtubeUrl?: string;
   requiresBand?: boolean;
   requiresBar?: boolean;
@@ -255,3 +255,19 @@ export interface UserProfile {
   /** First-run setup completed. */
   onboarded?: boolean;
 }
+
+/** Animations added for the full 40-exercise library. */
+export type ExtraAvatarAnimationType =
+  | 'hanging-knee-raise' | 'spine-decompression-hang' | 'archer-pushup' | 'incline-press'
+  | 'single-arm-row' | 'front-raise' | 'mid-face-pull' | 'hammer-curl' | 'concentration-curl'
+  | 'behind-back-curl' | 'reverse-curl' | 'reverse-lunge' | 'rdl' | 'good-morning' | 'monster-walk'
+  // bodyweight / no-equipment movements
+  | 'burpee' | 'mountain-climbers' | 'v-up' | 'bicycle-crunch' | 'plank-shoulder-tap' | 'pike-pushup'
+  | 'pushup-downward-dog' | 'diamond-pushup' | 'superman-pulse' | 'jump-squat' | 'sumo-squat' | 'dead-hang'
+  // band-free variants of rigs that otherwise draw a band
+  | 'prone-leg-curl' | 'slider-leg-curl' | 'nordic-negative' | 'single-leg-rdl' | 'single-leg-calf-raise'
+  | 'bulgarian-split-squat' | 'step-up' | 'side-lunge' | 'pistol-assisted' | 'upright-row' | 'pull-apart'
+  | 'overhead-squat' | 'bar-dip' | 'bench-dip' | 'tricep-kickback' | 'doorframe-row' | 'table-row'
+  | 'negative-pullup' | 'incline-pushup' | 'knee-pushup' | 'planche-lean' | 'front-lever-raise'
+  | 'leg-scissors' | 'long-arm-crunch' | 'side-plank-rotation' | 'plank-knee-crunch'
+  | 'chinup-strict' | 'archer-pushup-bodyweight' | 'pushup-standard' | 'air-squat' | 'reverse-lunge-bodyweight' | 'calf-raise-bodyweight' | 'glute-bridge-bodyweight';

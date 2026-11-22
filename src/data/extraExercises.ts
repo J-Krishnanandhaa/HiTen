@@ -16,7 +16,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     anchorPosition: 'Door Low',
     difficulty: 'Beginner',
     requiresBand: true,
-    avatarAnimation: 'glute-kickback',
+    avatarAnimation: 'prone-leg-curl',
     instructions: [
       'Anchor a loop band at the bottom of a door and lie face down with your feet towards the door.',
       'Loop the band around both ankles and shuffle forward until there is tension with legs straight.',
@@ -38,7 +38,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     difficulty: 'Intermediate',
     requiresBand: true,
     isCompound: true,
-    avatarAnimation: 'rdl',
+    avatarAnimation: 'single-leg-rdl',
     instructions: [
       'Stand on the band with one foot and hold the other end in both hands.',
       'Soften the standing knee and hinge at the hip, letting the free leg travel straight back.',
@@ -57,7 +57,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
-    avatarAnimation: 'calf-raise-bodyweight',
+    avatarAnimation: 'single-leg-calf-raise',
     instructions: [
       'Stand on one foot on the edge of a step, heel hanging off. Hold a wall for balance.',
       'Lower the heel below the step for a full stretch.',
@@ -77,7 +77,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Intermediate',
-    avatarAnimation: 'glute-bridge',
+    avatarAnimation: 'slider-leg-curl',
     tempo: '1-0-3',
     instructions: [
       'Lie on your back on a smooth floor with heels on a towel (or socks), knees bent.',
@@ -99,7 +99,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     anchorPosition: 'None',
     difficulty: 'Advanced',
     isCompound: true,
-    avatarAnimation: 'glute-bridge',
+    avatarAnimation: 'nordic-negative',
     tempo: '5-0-X',
     instructions: [
       'Kneel on a cushion with your heels anchored under a sofa or held by a partner.',
@@ -123,7 +123,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     anchorPosition: 'None',
     difficulty: 'Intermediate',
     isCompound: true,
-    avatarAnimation: 'reverse-lunge-bodyweight',
+    avatarAnimation: 'bulgarian-split-squat',
     instructions: [
       'Stand a stride in front of a chair or sofa and rest the top of your back foot on it.',
       'Lower straight down until the front thigh is about parallel to the floor.',
@@ -142,7 +142,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
-    avatarAnimation: 'reverse-lunge-bodyweight',
+    avatarAnimation: 'step-up',
     instructions: [
       'Place one foot on a sturdy step or low chair.',
       'Drive through that foot to stand on the step without pushing off the floor foot.',
@@ -161,7 +161,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
-    avatarAnimation: 'reverse-lunge-bodyweight',
+    avatarAnimation: 'side-lunge',
     instructions: [
       'Stand with feet together, then step wide to one side.',
       'Sit the hips back over the stepping leg while the other leg stays straight.',
@@ -181,7 +181,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     anchorPosition: 'None',
     difficulty: 'Advanced',
     isCompound: true,
-    avatarAnimation: 'air-squat',
+    avatarAnimation: 'pistol-assisted',
     instructions: [
       'Stand on one leg holding a door frame or a band anchored at chest height.',
       'Extend the free leg forward and squat down on the standing leg as low as you can control.',
@@ -203,7 +203,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     anchorPosition: 'Under Feet',
     difficulty: 'Beginner',
     requiresBand: true,
-    avatarAnimation: 'lateral-raise',
+    avatarAnimation: 'upright-row',
     instructions: [
       'Stand on the band with feet wide and take an overhand grip.',
       'Pull the band up towards your chin, leading with the elbows.',
@@ -223,7 +223,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     anchorPosition: 'None',
     difficulty: 'Beginner',
     requiresBand: true,
-    avatarAnimation: 'reverse-fly',
+    avatarAnimation: 'pull-apart',
     instructions: [
       'Hold a light band at forehead or chest height with arms straight out in front.',
       'Pull the band apart until it touches your chest, squeezing the shoulder blades.',
@@ -244,7 +244,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     difficulty: 'Intermediate',
     requiresBand: true,
     isCompound: true,
-    avatarAnimation: 'squat',
+    avatarAnimation: 'overhead-squat',
     instructions: [
       'Stand on the band shoulder-width apart and press it overhead with straight arms.',
       'Squat down keeping the arms locked overhead.',
@@ -269,7 +269,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     requiresBar: true,
     isAssisted: true,
     isCompound: true,
-    avatarAnimation: 'tricep-pushdown',
+    avatarAnimation: 'bar-dip',
     instructions: [
       'Loop a band over a low straight bar and kneel or stand in the band.',
       'Support yourself on top of the bar with straight arms.',
@@ -288,7 +288,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
-    avatarAnimation: 'diamond-pushup',
+    avatarAnimation: 'bench-dip',
     instructions: [
       'Sit on the edge of a sturdy chair, hands beside your hips, and slide your hips off.',
       'Bend the elbows to lower your hips until upper arms are about parallel to the floor.',
@@ -307,7 +307,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     anchorPosition: 'Door Low',
     difficulty: 'Beginner',
     requiresBand: true,
-    avatarAnimation: 'tricep-pushdown',
+    avatarAnimation: 'tricep-kickback',
     instructions: [
       'Anchor the band low, face the anchor and hinge forward with a flat back.',
       'Pin the upper arms beside your ribs with elbows bent.',
@@ -328,7 +328,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
-    avatarAnimation: 'single-arm-row',
+    avatarAnimation: 'doorframe-row',
     instructions: [
       'Stand in a doorway and grip both sides of a solid frame at chest height.',
       'Walk your feet forward and lean back until your arms are straight.',
@@ -348,7 +348,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     anchorPosition: 'None',
     difficulty: 'Intermediate',
     isCompound: true,
-    avatarAnimation: 'bent-over-row',
+    avatarAnimation: 'table-row',
     instructions: [
       'Lie under a sturdy table and grip the edge with hands shoulder-width apart.',
       'Keep your body straight, heels on the floor (or knees bent to make it easier).',
@@ -369,7 +369,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     difficulty: 'Beginner',
     requiresBar: true,
     isCompound: true,
-    avatarAnimation: 'pullup-strict',
+    avatarAnimation: 'negative-pullup',
     instructions: [
       'Jump or step up so your chin is above the bar.',
       'Lower yourself as slowly as you can, aiming for 3–5 seconds, to a dead hang.',
@@ -390,7 +390,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
-    avatarAnimation: 'pushup-standard',
+    avatarAnimation: 'incline-pushup',
     instructions: [
       'Place hands on a bench, table or wall, slightly wider than shoulders.',
       'Walk your feet back so your body forms a straight line.',
@@ -409,7 +409,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
-    avatarAnimation: 'pushup-standard',
+    avatarAnimation: 'knee-pushup',
     instructions: [
       'Start on hands and knees, hands under shoulders, then walk the hands forward.',
       'Keep a straight line from knees to head.',
@@ -430,7 +430,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     difficulty: 'Advanced',
     requiresBand: true,
     isTimed: true,
-    avatarAnimation: 'pushup',
+    avatarAnimation: 'planche-lean',
     instructions: [
       'Start in a push-up position with hands turned slightly out and a band around the hips for support.',
       'Lean the shoulders forward past the hands while keeping arms straight.',
@@ -452,7 +452,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     requiresBand: true,
     requiresBar: true,
     isAssisted: true,
-    avatarAnimation: 'hanging-leg-raise',
+    avatarAnimation: 'front-lever-raise',
     instructions: [
       'Hang from the bar with a band looped from the bar around your hips or feet.',
       'With straight arms, raise your body until it is horizontal.',
@@ -473,7 +473,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     anchorPosition: 'None',
     difficulty: 'Beginner',
     isTimed: true,
-    avatarAnimation: 'v-up',
+    avatarAnimation: 'leg-scissors',
     instructions: [
       'Lie on your back, hands under your hips.',
       'Lift both legs to about 45° and cross them over each other in small, quick movements.',
@@ -491,7 +491,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
-    avatarAnimation: 'bicycle-crunch',
+    avatarAnimation: 'long-arm-crunch',
     instructions: [
       'Lie on your back with knees bent and arms straight above your head.',
       'Crunch up, reaching the arms towards the ceiling.',
@@ -510,7 +510,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Intermediate',
-    avatarAnimation: 'plank-shoulder-tap',
+    avatarAnimation: 'side-plank-rotation',
     instructions: [
       'Start in a side plank on one forearm, top arm reaching to the ceiling.',
       'Rotate the torso to thread the top arm under your body, then open back up.',
@@ -529,7 +529,7 @@ export const EXTRA_EXERCISES: Exercise[] = [
     bandType: 'None',
     anchorPosition: 'None',
     difficulty: 'Beginner',
-    avatarAnimation: 'mountain-climbers',
+    avatarAnimation: 'plank-knee-crunch',
     instructions: [
       'Start in a high plank.',
       'Drive one knee towards the chest, pause, and return. Alternate sides.',
