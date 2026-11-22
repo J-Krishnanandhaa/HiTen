@@ -20,6 +20,7 @@
     "src/utils/equipmentManager.ts",
     "src/utils/storage.ts",
     "src/data/prebuiltWorkouts.ts",
-    "src/data/exerciseDatabase.ts"
+    "src/data/exerciseDatabase.ts",
+    "src/data/sessionBlocks.ts"
   ]
 }
