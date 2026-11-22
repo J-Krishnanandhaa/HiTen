@@ -362,8 +362,13 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
       });
     }
   };
-  const currentPlan = WORKDAY_SPLIT[currentDayOfWeek];
-  const activeRoutineId = resolvedTierRoutines[currentDayOfWeek]?.[workdayTier] || '';
+
+  // Allow user to select any day of the week to inspect/run its workout (defaults to today's day)
+  const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number>(currentDayOfWeek);
+
+  const displayedDayOfWeek = selectedDayOfWeek;
+  const currentPlan = WORKDAY_SPLIT[displayedDayOfWeek];
+  const activeRoutineId = resolvedTierRoutines[displayedDayOfWeek]?.[workdayTier] || '';
   const isRestDay = !activeRoutineId || currentPlan.isRest;
   const rawTodayRoutine = !isRestDay
     ? (activeEquipmentRoutines.find(p => p.id === activeRoutineId) || PREBUILT_ROUTINES.find(p => p.id === activeRoutineId))
@@ -468,7 +473,7 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
         {/* Content Area with Landscape 2-Column Split */}
         <div className="flex-1 landscape:grid landscape:grid-cols-12 landscape:gap-5 landscape:p-4 pb-20">
           {/* Routine Banner Info & Summary Card */}
-          <div className="landscape:col-span-5 p-5 bg-gradient-to-br from-hy-primary to-hy-bg border-b landscape:border border-hy-elevated landscape:rounded-3xl landscape:h-fit landscape:sticky landscape:top-14">
+          <div className="landscape:col-span-5 p-5 bg-hy-surface border-b landscape:border border-hy-elevated landscape:rounded-3xl landscape:h-fit landscape:sticky landscape:top-14">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span
                 className="text-xs font-black px-2 py-0.5 rounded-full border tracking-tighter"
@@ -693,22 +698,55 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
             {weekDays.map((day, idx) => {
               const isCompleted = thisWeekCompletedDays[idx];
               const isToday = idx === currentDayOfWeek;
+              const isSelected = idx === selectedDayOfWeek;
               const planDay = WORKDAY_SPLIT[idx];
               const isRest = planDay.isRest;
+              const isWeekend = idx >= 5; // Saturday (5) or Sunday (6)
 
               return (
-                <div key={idx} className="flex flex-col items-center gap-1">
-                  <span className={`text-xs font-black ${isToday ? 'text-hy-primary' : isRest ? 'text-hy-text-3' : 'text-slate-300'}`}>
-                    {day}
-                  </span>
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSelectedDayOfWeek(idx)}
+                  className={`flex flex-col items-center gap-1 p-1 rounded-xl transition-all cursor-pointer text-left ${
+                    isSelected
+                      ? 'bg-hy-elevated ring-2 ring-hy-primary/70 shadow-md'
+                      : 'hover:bg-hy-surface-hover/70'
+                  }`}
+                  title={`${planDay.dayName}: ${planDay.focus}${isToday ? ' (Today)' : ''}`}
+                >
+                  <div className="flex items-center gap-0.5">
+                    <span className={`text-[11px] font-black ${
+                      isSelected 
+                        ? 'text-hy-primary' 
+                        : isToday 
+                        ? 'text-hy-volt' 
+                        : isWeekend 
+                        ? 'text-amber-400 font-extrabold' 
+                        : isRest 
+                        ? 'text-hy-text-3' 
+                        : 'text-slate-300'
+                    }`}>
+                      {day}
+                    </span>
+                    {isToday && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-hy-volt animate-pulse" title="Today" />
+                    )}
+                  </div>
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                       isCompleted
                         ? 'bg-hy-success text-hy-bg shadow-md shadow-hy-success/30 font-black'
+                        : isSelected
+                        ? isRest
+                          ? 'border-2 border-amber-400 bg-amber-400/20 text-amber-300 font-bold'
+                          : 'bg-hy-primary text-hy-on-primary font-black shadow-md shadow-hy-primary/40'
                         : isToday
                         ? isRest
                           ? 'border-2 border-amber-500 bg-hy-surface text-amber-400'
                           : 'border-2 border-hy-primary bg-hy-surface text-hy-primary font-black'
+                        : isWeekend
+                        ? 'bg-amber-500/15 border border-amber-500/40 text-amber-400 font-bold'
                         : isRest
                         ? 'bg-hy-bg/80 border border-hy-elevated/60 text-hy-text-3'
                         : 'bg-hy-elevated text-slate-300 border border-hy-border'
@@ -722,16 +760,26 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
                       <span className="text-xs font-bold">{planDay.focus.charAt(0)}</span>
                     )}
                   </div>
-                  <span className={`text-xs font-semibold truncate max-w-[38px] text-center ${isToday ? 'text-hy-volt font-bold' : isRest ? 'text-hy-text-3' : 'text-hy-text-2'}`}>
+                  <span className={`text-[10px] sm:text-xs font-semibold truncate max-w-[38px] text-center ${
+                    isSelected 
+                      ? 'text-hy-primary font-bold' 
+                      : isToday 
+                      ? 'text-hy-volt font-bold' 
+                      : isWeekend 
+                      ? 'text-amber-400/90 font-bold' 
+                      : isRest 
+                      ? 'text-hy-text-3' 
+                      : 'text-hy-text-2'
+                  }`}>
                     {isRest ? 'Rest' : planDay.focus.split(' ')[0]}
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
         </div>
 
-        {/* Today's session: the main action on this screen */}
+        {/* Today's session / Selected day session: the main action on this screen */}
         <div className="order-1 hy-card p-4 bg-gradient-to-br from-hy-surface via-hy-bg-2 to-hy-bg border border-hy-primary/35 relative overflow-hidden shadow-xl flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
@@ -800,6 +848,20 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
               </div>
             )}
           </div>
+
+          {/* Quick jump to active day if rest day is selected */}
+          {isRestDay && (
+            <div className="mt-2 pt-2 border-t border-hy-elevated/60 flex items-center justify-between gap-2">
+              <span className="text-xs text-hy-text-2">Scheduled for recovery. Want to train anyway?</span>
+              <button
+                onClick={() => setSelectedDayOfWeek(0)} // Jump to Monday Push
+                className="px-3 py-1.5 rounded-xl bg-hy-primary hover:bg-hy-primary-hover text-hy-on-primary text-xs font-black transition-all flex items-center gap-1 shrink-0 shadow-sm"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Open Active Workout (Mon · Push)</span>
+              </button>
+            </div>
+          )}
 
           {/* Today's Exercise Preview Chips */}
           {todayRoutine && todayRoutine.exercises.length > 0 && (
@@ -909,31 +971,31 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
       {/* 3. 7X4 CHALLENGE HERO CARD (28-Day Progressive Program) */}
       <div 
         onClick={() => setShowChallengeMatrix(true)}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-hy-bg-2 via-[#1E3C72] to-hy-primary-hover p-5 shadow-xl cursor-pointer hover:opacity-95 transition-all group"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-hy-surface via-hy-elevated to-hy-surface border border-hy-border/60 p-5 shadow-xl cursor-pointer hover:border-hy-primary/50 transition-all group"
       >
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-xs font-black tracking-wider uppercase mb-2">
-            <Zap className="w-3 h-3 fill-white" />
+          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-hy-primary/20 text-hy-primary border border-hy-primary/30 text-xs font-black tracking-wider uppercase mb-2">
+            <Zap className="w-3 h-3 fill-current" />
             <span>7X4 Challenge • 28 Days</span>
           </div>
 
           <h2 className="text-2xl font-heading font-black text-white tracking-tight">
             {challengeRoutine.name.toUpperCase()}
           </h2>
-          <p className="text-xs text-white/80 mt-1 max-w-md line-clamp-1">
+          <p className="text-xs text-hy-text-2 mt-1 max-w-md line-clamp-1">
             {challengeRoutine.description}
           </p>
 
-          <div className="mt-3 w-full bg-black/30 rounded-full h-2 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={28} aria-valuenow={challengeDone}>
-            <div className="bg-gradient-to-r from-hy-volt to-hy-success h-full rounded-full transition-all duration-500" style={{ width: `${Math.round((challengeDone / 28) * 100)}%` }} />
+          <div className="mt-3 w-full bg-black/50 rounded-full h-2 overflow-hidden border border-hy-border/30" role="progressbar" aria-valuemin={0} aria-valuemax={28} aria-valuenow={challengeDone}>
+            <div className="bg-gradient-to-r from-hy-primary to-hy-volt h-full rounded-full transition-all duration-500" style={{ width: `${Math.round((challengeDone / 28) * 100)}%` }} />
           </div>
-          <div className="flex items-center justify-between text-xs text-white/80 mt-1 font-bold">
+          <div className="flex items-center justify-between text-xs text-hy-text-2 mt-1 font-bold">
             <span>Day {Math.min(28, challengeDone + 1)} / 28</span>
             <span>Week {Math.min(4, Math.floor(challengeDone / 7) + 1)}</span>
           </div>
 
           <div className="flex items-center justify-between mt-4">
-            <span className="text-xs font-bold text-white/90">
+            <span className="text-xs font-bold text-hy-text-2">
               {challengeRoutine.exercises.length} Exercises • ~{challengeRoutine.estimatedDurationMins} Mins
             </span>
             <button
@@ -941,9 +1003,9 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
                 e.stopPropagation();
                 setSelectedRoutine(scaleRoutineToDuration(challengeRoutine, targetDuration, userProfile) as LeapRoutine);
               }}
-              className="px-4 py-2 rounded-xl bg-white text-hy-primary font-black text-xs shadow-lg flex items-center gap-1.5 group-hover:scale-105 transition-transform"
+              className="px-4 py-2 rounded-xl bg-hy-primary text-hy-on-primary font-black text-xs shadow-lg flex items-center gap-1.5 group-hover:scale-105 transition-transform"
             >
-              <Play className="w-3.5 h-3.5 fill-[#1E3C72]" />
+              <Play className="w-3.5 h-3.5 fill-current" />
               <span>START</span>
             </button>
           </div>
@@ -1187,6 +1249,7 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
                 const isToday = idx === currentDayOfWeek;
                 const rId = resolvedTierRoutines[item.dayIndex]?.[workdayTier];
                 const isRest = !rId || item.isRest;
+                const isWeekend = idx >= 5;
 
                 return (
                   <div
@@ -1194,6 +1257,8 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
                     className={`p-3 rounded-2xl border transition-all ${
                       isToday
                         ? 'bg-hy-surface border-hy-primary'
+                        : isWeekend
+                        ? 'bg-amber-500/[0.05] border-amber-500/30'
                         : isRest
                         ? 'bg-hy-bg/80 border-hy-elevated'
                         : 'bg-hy-bg-2 border-hy-elevated'
@@ -1201,7 +1266,15 @@ export const WorkoutHub: React.FC<WorkoutHubProps> = ({
                   >
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs font-black uppercase ${isToday ? 'text-hy-primary' : isRest ? 'text-hy-text-3' : 'text-slate-300'}`}>
+                        <span className={`text-xs font-black uppercase ${
+                          isToday 
+                            ? 'text-hy-primary' 
+                            : isWeekend 
+                            ? 'text-amber-400' 
+                            : isRest 
+                            ? 'text-hy-text-3' 
+                            : 'text-slate-300'
+                        }`}>
                           {item.dayName}
                         </span>
                         {isToday && (

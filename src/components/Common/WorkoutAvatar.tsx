@@ -1296,8 +1296,8 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
     lg: 'w-64 h-64 md:w-72 md:h-72',
   }[size];
 
-  // Guaranteed Electric Blue for resistance bands to satisfy user specification
-  const blueBandColor = '#6EA8FF';
+  // Dynamic resistance band color matching equipment / stealth theme
+  const bandColor = bandColorHex || '#E2F952';
 
   // Resolve best animation fallback based on name or anchor if undefined
   const resolvedAnim: WorkoutAvatarAnimation = animationType || (() => {
@@ -1385,8 +1385,8 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
     const g = m.bandRest[i];
     return (
       <g key={`band${i}`}>
-        <path d={g.d} fill="none" stroke={blueBandColor} strokeWidth={g.w} strokeLinecap="round" className={`${ns}-b${i}`} />
-        <path d={g.d} fill="none" stroke="#00E5FF" strokeWidth={g.w * 0.28} strokeLinecap="round" opacity="0.75" className={`${ns}-b${i}h`} />
+        <path d={g.d} fill="none" stroke={bandColor} strokeWidth={g.w} strokeLinecap="round" className={`${ns}-b${i}`} />
+        <path d={g.d} fill="none" stroke="#FFFFFF" strokeWidth={g.w * 0.28} strokeLinecap="round" opacity="0.4" className={`${ns}-b${i}h`} />
       </g>
     );
   });
@@ -1394,18 +1394,18 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
     const p = resolveAnchor(b.a, S, spec);
     return (
       <g key={`fl${i}`}>
-        <ellipse cx={f1(p.x)} cy={f1(p.y)} rx="17" ry="3.6" fill="none" stroke={blueBandColor} strokeWidth="4.4" />
-        <ellipse cx={f1(p.x)} cy={f1(p.y - 0.8)} rx="14" ry="2.2" fill="none" stroke="#00E5FF" strokeWidth="1" opacity="0.7" />
+        <ellipse cx={f1(p.x)} cy={f1(p.y)} rx="17" ry="3.6" fill="none" stroke={bandColor} strokeWidth="4.4" />
+        <ellipse cx={f1(p.x)} cy={f1(p.y - 0.8)} rx="14" ry="2.2" fill="none" stroke="#FFFFFF" strokeWidth="1" opacity="0.3" />
       </g>
     );
   });
 
   return (
-    <div className={`relative ${sizeClasses} mx-auto flex items-center justify-center overflow-hidden rounded-3xl bg-[#12161A]/80 border border-[#242C35]/60 shadow-inner`}>
-      {/* Background Soft Glow matching the active resistance band */}
+    <div className={`relative ${sizeClasses} mx-auto flex items-center justify-center overflow-hidden rounded-3xl bg-hy-surface border border-hy-elevated shadow-inner`}>
+      {/* Background Soft Glow */}
       <div
-        className="absolute inset-4 rounded-full opacity-20 blur-2xl transition-colors duration-700 pointer-events-none"
-        style={{ backgroundColor: blueBandColor }}
+        className="absolute inset-4 rounded-full opacity-10 blur-2xl transition-colors duration-700 pointer-events-none"
+        style={{ backgroundColor: bandColor }}
       />
 
       <svg
@@ -1428,11 +1428,11 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
             <stop offset="100%" stopColor="#B71C1C" />
           </linearGradient>
 
-          {/* HIGH-CONTRAST ELECTRIC BLUE RESISTANCE BAND GRADIENT */}
+          {/* HIGH-CONTRAST RESISTANCE BAND GRADIENT */}
           <linearGradient id="bandBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00E5FF" />
-            <stop offset="50%" stopColor="#2979FF" />
-            <stop offset="100%" stopColor="#1565C0" />
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="50%" stopColor="#E2F952" />
+            <stop offset="100%" stopColor="#B0CE18" />
           </linearGradient>
 
           {/* HIGH-CONTRAST AVATAR PALETTE (Gold/Amber Top & Warm Natural Limbs) */}
@@ -1455,24 +1455,24 @@ export const WorkoutAvatar: React.FC<WorkoutAvatarProps> = ({
           </linearGradient>
 
           <linearGradient id="avatarShortsDark" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#1E293B" />
-            <stop offset="60%" stopColor="#0F172A" />
-            <stop offset="100%" stopColor="#020617" />
+            <stop offset="0%" stopColor="#262626" />
+            <stop offset="60%" stopColor="#181818" />
+            <stop offset="100%" stopColor="#0D0D0D" />
           </linearGradient>
 
           {/* Floor Mat Base */}
           <linearGradient id="floorMat" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#1E293B" stopOpacity="0.05" />
-            <stop offset="25%" stopColor="#242C35" stopOpacity="0.9" />
-            <stop offset="75%" stopColor="#242C35" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#1E293B" stopOpacity="0.05" />
+            <stop offset="0%" stopColor="#1E1E1E" stopOpacity="0.05" />
+            <stop offset="25%" stopColor="#242424" stopOpacity="0.9" />
+            <stop offset="75%" stopColor="#242424" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#1E1E1E" stopOpacity="0.05" />
           </linearGradient>
 
           {/* Muscle Activation Glow Gradient */}
           <radialGradient id="muscleGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#00E5FF" stopOpacity="0.9" />
-            <stop offset="60%" stopColor="#2979FF" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#2979FF" stopOpacity="0" />
+            <stop offset="0%" stopColor="#E2F952" stopOpacity="0.8" />
+            <stop offset="60%" stopColor="#E2F952" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#E2F952" stopOpacity="0" />
           </radialGradient>
 
           {/* Articulated multi-pivot keyframes, generated from the kinematic rig above.

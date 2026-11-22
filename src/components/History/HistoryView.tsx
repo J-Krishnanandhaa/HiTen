@@ -190,7 +190,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
                 {/* Day label */}
                 <span className={`text-xs sm:text-xs font-black ${
-                  day.isToday ? 'text-hy-orange' : 'text-hy-text-2'
+                  day.isToday 
+                    ? 'text-hy-orange' 
+                    : (idx === 5 || idx === 6)
+                    ? 'text-amber-400 font-extrabold'
+                    : 'text-hy-text-2'
                 }`}>
                   {day.shortDay}
                 </span>
@@ -272,8 +276,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               <span>Wed</span>
               <span>Thu</span>
               <span>Fri</span>
-              <span className="text-blue-400">Sat</span>
-              <span className="text-blue-400">Sun</span>
+              <span className="text-amber-400 font-black">Sat</span>
+              <span className="text-amber-400 font-black">Sun</span>
             </div>
 
             {/* Calendar Days Grid */}
@@ -289,6 +293,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 const dateKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
                 const isSelected = selectedDate === dateKey;
                 const isToday = todayStr === dateKey;
+                const dayCol = (firstDayOfWeek + idx) % 7;
+                const isWeekend = dayCol === 5 || dayCol === 6; // Sat (5) or Sun (6)
 
                 // Check workouts for this day
                 const dayWorkouts = workoutLogs.filter(log => log.date.startsWith(dateKey));
@@ -304,6 +310,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                         ? 'border-hy-primary bg-hy-primary/15 ring-2 ring-hy-primary/40 shadow-lg shadow-hy-primary/20 scale-[1.02]'
                         : isToday
                         ? 'border-hy-success/60 bg-hy-surface hover:bg-hy-elevated'
+                        : isWeekend
+                        ? 'border-amber-500/40 bg-amber-500/[0.08] hover:bg-amber-500/[0.14]'
                         : 'border-hy-elevated bg-hy-bg-2 hover:bg-hy-elevated'
                     }`}
                   >
@@ -314,6 +322,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                           ? 'text-hy-primary' 
                           : isToday 
                           ? 'text-hy-success' 
+                          : isWeekend
+                          ? 'text-amber-400 font-extrabold'
                           : 'text-slate-300'
                       }`}>
                         {dayNum}
