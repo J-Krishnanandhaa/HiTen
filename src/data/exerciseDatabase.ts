@@ -5,15 +5,16 @@ import {
 } from './extraExercises';
 
 /**
- * VERIFIED VIDEO DEMONSTRATION CUES (audited 21 Nov 2026 against each video's
- * official chapters and YouTube transcript).
+ * VIDEO DEMONSTRATIONS (re-audited 22 Nov 2026)
  *
- * match:
- *   'exact'   – the video shows this exact exercise at `start`
- *   'close'   – same movement pattern, minor setup difference (anchor, grip, stance)
- *   'variant' – a related variation; label says what is actually shown
- * Exercises absent from all four videos have no entry and fall back to a
- * targeted YouTube search instead of a wrong timestamp.
+ * Every exercise points at a clip of that exact exercise:
+ *   - `tut_*`  short single-exercise tutorials, each checked frame by frame and
+ *              confirmed embeddable; they play from the start (Live Lean TV clips
+ *              skip their 4-second intro card).
+ *   - `thenx`  the THENX band compilation, used only where the cue sits on one of
+ *              the video's own chapter markers.
+ * Estimated timestamps into long follow-along workouts were removed.
+ * `rowan` stays only for the guided warm-up and cool-down blocks.
  */
 export const VIDEO_SOURCES = {
   thenx: {
@@ -21,18 +22,6 @@ export const VIDEO_SOURCES = {
     title: '20 Best Exercises You Can Do With A Resistance Band',
     channel: 'THENX (Chris Heria)',
     lengthSec: 620,
-  },
-  fml: {
-    id: 'njGZClD94bg',
-    title: 'Full Body Workout With Resistance Bands | 8 Weeks Muscle Building Program | Session 7',
-    channel: 'Fitness My Life',
-    lengthSec: 443,
-  },
-  peto: {
-    id: 'sTueHjRCMaQ',
-    title: '20 Min FULL BODY RESISTANCE BAND WORKOUT | Follow Along',
-    channel: 'Tom Peto Training',
-    lengthSec: 1280,
   },
   rowan: {
     id: 'cDq-nFmD0rI',
@@ -67,6 +56,60 @@ export const VIDEO_SOURCES = {
   tut_bar_negative_pullup: { id: 'gbPURTSxQLY', title: 'How To Do a Negative Pull-Up', channel: 'Bodybuilding.com', lengthSec: 62 },
   tut_bodyweight_incline_pushup: { id: 'cfns5VDVVvk', title: 'How To Do An Incline Push Up', channel: 'Train With Adby', lengthSec: 133 },
   tut_bodyweight_knee_pushup: { id: 'lFR1GWy1Dcs', title: 'The Knee Push Up', channel: 'Dr. Carl Baird', lengthSec: 125 },
+
+  // Exact single-exercise clips, checked frame by frame (22 Nov 2026).
+  tut_bar_chinup_assisted: { id: '6NoWVtcSUyI', title: 'How To: Resistance Band Assisted Chin Up', channel: 'Live Lean TV Daily Exercises', lengthSec: 93 },
+  tut_bar_hanging_leg_raise: { id: 'dPwg1E_ygjc', title: 'How To Do Hanging Knee Raises', channel: 'Live Lean TV Daily Exercises', lengthSec: 42 },
+  tut_bar_band_lat_pulldown: { id: '2K6U6ScTdUI', title: 'How To Do Resistance Band Lat Pull Down', channel: 'Calixpert', lengthSec: 50 },
+  tut_bar_band_face_pull: { id: 'JBpj9-3tP0c', title: 'How To Do Face Pull With Resistance Band', channel: 'Fitness My Life', lengthSec: 49 },
+  tut_bar_band_tricep_pushdown: { id: 'p1pmKGJgcr0', title: 'Resistance Band Tricep Pushdown', channel: 'Dale Dymkoski', lengthSec: 54 },
+  tut_chest_fly_middle: { id: 'UpyX0O740Gg', title: 'Standing Chest Fly Using Resistance Bands', channel: 'Home Gym Fitness Channel', lengthSec: 76 },
+  tut_incline_chest_press: { id: 'RzJMbxUEP9c', title: 'How To Do Incline Chest Press With Resistance Band', channel: 'Fitness My Life', lengthSec: 49 },
+  tut_bent_over_row_feet: { id: 'Y3H17rshgZE', title: 'How To Do A Resistance Band Bent Over Row', channel: 'Live Lean TV Daily Exercises', lengthSec: 53 },
+  tut_single_arm_lat_row: { id: 'x_SBOiREd8I', title: 'Stagger-Stance Single-Arm Banded Row', channel: 'VP Movement Library', lengthSec: 49 },
+  tut_seated_face_pull: { id: 'MJEKj5KnW88', title: 'Banded Face Pull with External Rotation', channel: 'E3 Rehab Exercise Library', lengthSec: 15 },
+  tut_overhead_shoulder_press: { id: 'Ky8S6SCcyxI', title: 'How To Do Shoulder Press With Resistance Band', channel: 'Fitness My Life', lengthSec: 50 },
+  tut_lateral_deltoid_raise: { id: 'gfEyrmxbCbw', title: 'How To: Resistance Band Lateral Raise', channel: 'Live Lean TV Daily Exercises', lengthSec: 67 },
+  tut_front_raise_band: { id: 'LKvx4Y0G57w', title: 'How to do resistance band front raises', channel: 'Famme', lengthSec: 49 },
+  tut_standing_bicep_curl: { id: 'AaA7Yj3zHiU', title: 'How to do Bicep curls with resistance bands', channel: 'YuryFit', lengthSec: 26 },
+  tut_hammer_curl_band: { id: 'bcond2tqWg0', title: 'Biceps: Resistance Band Hammer Curl', channel: 'Fit Gent', lengthSec: 44 },
+  tut_tube_concentration_curl: { id: 'osTYcC1O5TE', title: 'Resistance Band Concentration Curl', channel: 'Sean Chen', lengthSec: 36 },
+  tut_overhead_tricep_extension: { id: 'Ewqe_z1HKno', title: 'How to Do Overhead Tricep Extensions with Resistance Bands', channel: 'YuryFit', lengthSec: 56 },
+  tut_tricep_pushdown_band: { id: 'Y3CDzx-oj3k', title: 'How To Do Triceps Pushdowns with Resistance Bands', channel: 'Undersun Fitness', lengthSec: 138 },
+  tut_band_thruster: { id: 'VSrh6NbPCe0', title: 'How to do a Thruster with resistance bands', channel: 'YuryFit', lengthSec: 35 },
+  tut_banded_squat_front: { id: 'hgWgPHewl7U', title: 'How to Do Front Squats with a Resistance Band', channel: 'YuryFit', lengthSec: 39 },
+  tut_romanian_deadlift_band: { id: '6jlj3bRgjv8', title: 'Romanian Deadlift (RDL) (Resistance Band)', channel: 'Coach Yash', lengthSec: 39 },
+  tut_band_good_morning: { id: 'nk8Gat8_za0', title: 'Band Good Mornings', channel: 'Paul Sandburg Fitness', lengthSec: 47 },
+  tut_lateral_band_walk: { id: 'dgbhiejP7oI', title: 'Monster Walks: Gluteal Strengthening', channel: 'Competitive EDGE PT', lengthSec: 77 },
+  tut_standing_glute_kickback: { id: 'rONpWaNIhE8', title: 'How To: Band Glute Kickback', channel: 'Kia Khadem', lengthSec: 53 },
+  tut_tube_calf_raise: { id: '-c39P9V64tU', title: 'Resistance Band Standing Calf Raise', channel: 'Home Gym Fitness Channel', lengthSec: 86 },
+  tut_reverse_fly_band: { id: 'FGoKCNIno-Y', title: 'How To Do Reverse Flys With Resistance Band', channel: 'Fitness My Life', lengthSec: 40 },
+  tut_behind_back_bicep_curl: { id: 'g5_WanhBcV4', title: 'Behind The Back Curls with Resistance Bands', channel: 'HomeStrong Fitness', lengthSec: 45 },
+  tut_bodyweight_pushup_standard: { id: 'IODxDxX7oi4', title: 'The Perfect Push Up | Do it right!', channel: 'Calisthenicmovement', lengthSec: 217 },
+  tut_bodyweight_diamond_pushup: { id: 'J0DnG1_S92I', title: 'How To: Diamond Push-Up', channel: 'ScottHermanFitness', lengthSec: 110 },
+  tut_bodyweight_pike_pushup: { id: 'XckEEwa1BPI', title: 'How to do a Pike Push-Up', channel: 'NASM', lengthSec: 17 },
+  tut_bodyweight_pushup_downward_dog: { id: 'LCLfv60R9XA', title: 'Push-up to Down Dog', channel: 'TrainFTW', lengthSec: 22 },
+  tut_bodyweight_superman_pulses: { id: '0rVIf0RpZcA', title: 'How To Do A Superman with Pull', channel: 'Live Lean TV Daily Exercises', lengthSec: 31 },
+  tut_bodyweight_air_squat: { id: 'P-yaD24bUE8', title: 'Bodyweight Squat Tutorial - Proper Form and Technique', channel: 'Runna', lengthSec: 47 },
+  tut_bodyweight_sumo_squat_pulse: { id: 'GGVLjBEjmRQ', title: 'Sumo Squat Pulse', channel: 'VIRFIT', lengthSec: 33 },
+  tut_bodyweight_reverse_lunge: { id: '5frs7_F2SrU', title: 'Alternating Reverse Lunge', channel: 'Melita ReGen Lab', lengthSec: 33 },
+  tut_bodyweight_jump_squats: { id: 'QQWsscOgGkU', title: 'How To Jump Squat', channel: 'Nuffield Health', lengthSec: 46 },
+  tut_bodyweight_bicycle_crunches: { id: 'eqg47ZuGZXQ', title: 'Strengthening the core: Bicycle Crunch', channel: 'UCLA Health', lengthSec: 59 },
+  tut_bodyweight_v_ups: { id: 'n5cSgOvk53U', title: 'How To Do V-Ups', channel: 'Alas Family Adventures', lengthSec: 117 },
+  tut_bodyweight_mountain_climbers: { id: 'YQbLbj57DqY', title: 'How To: Cross Body Mountain Climber', channel: 'Live Lean TV Daily Exercises', lengthSec: 33 },
+  tut_bodyweight_plank_shoulder_taps: { id: 'wcKyqAMqueQ', title: 'How to do Shoulder Taps', channel: 'Bodybuilding.com', lengthSec: 44 },
+  tut_bodyweight_full_burpees: { id: 'NCqbpkoiyXE', title: 'How To Burpee', channel: 'Nuffield Health', lengthSec: 52 },
+  tut_door_high_lat_pulldown: { id: '_97pmOC2tzE', title: 'How To Do Lat Pull Down With Resistance Band', channel: 'Fitness My Life', lengthSec: 57 },
+  tut_bodyweight_single_leg_calf_raise: { id: 'qPd73snQfUs', title: 'Single-Leg Calf Raise', channel: 'Hospital for Special Surgery', lengthSec: 30 },
+  tut_bodyweight_side_lunge: { id: 'MvpBUsQrt_4', title: 'Lateral Lunges', channel: 'MGH Orthopaedics', lengthSec: 28 },
+  tut_band_upright_row: { id: 'VhpnXlphu88', title: 'Band Upright Row', channel: 'FitnessBlender', lengthSec: 43 },
+  tut_band_pull_apart: { id: 'pct3bP74WSw', title: 'Band Pull Apart', channel: 'The Active Life', lengthSec: 23 },
+  tut_band_overhead_squat: { id: 'hHHpLMFxhvk', title: 'Resistance Band Overhead Squat', channel: 'Ambitious Athletics', lengthSec: 57 },
+  tut_band_tricep_kickback: { id: 'YGkG8ApcqTE', title: 'How to do a Resistance Band Triceps Kickback', channel: 'Nutrient Health', lengthSec: 40 },
+  tut_bodyweight_leg_scissors: { id: 'aqMfWavH2X4', title: 'How To Do A Scissor Kick', channel: 'Live Lean TV Daily Exercises', lengthSec: 24 },
+  tut_bodyweight_long_arm_crunch: { id: '29lmlWvqXTE', title: 'How To: Long Arm Crunch', channel: 'Live Lean TV Daily Exercises', lengthSec: 64 },
+  tut_bodyweight_side_plank_rotation: { id: 'yaiF53lSVHI', title: 'Side Plank Thread the Needle', channel: 'Andy Vincent', lengthSec: 30 },
+  tut_bodyweight_plank_crunch: { id: 'I_syux99Bug', title: 'Plank Knee to Elbow', channel: 'I am Workoutic', lengthSec: 40 },
 } as const;
 
 export type VideoSourceKey = keyof typeof VIDEO_SOURCES;
@@ -82,80 +125,29 @@ export interface ExerciseVideoCue {
 export const EXERCISE_VIDEO_CUES: Record<string, ExerciseVideoCue> = {
   // --- Pull / bar ---
   'bar-pullup-assisted':        { source: 'thenx', start: 290,  match: 'exact',   label: 'Assisted Pull-Ups (band)' },
-  'bar-chinup-assisted':        { source: 'thenx', start: 290,  match: 'close',   label: 'Assisted Pull-Ups (overhand grip shown)' },
-  'bar-hanging-leg-raise':      { source: 'thenx', start: 342,  match: 'close',   label: 'Leg Raises (resistance band)' },
-  'bar-band-lat-pulldown':      { source: 'thenx', start: 333,  match: 'variant', label: 'Straight-Arm Lat Pulldown' },
-  'door-high-lat-pulldown':     { source: 'fml',   start: 351,  match: 'exact',   label: 'Lat Pull Down (high anchor)' },
-  'bent-over-row-feet':         { source: 'fml',   start: 382,  match: 'variant', label: 'Seated Rowing (low anchor)' },
-  'single-arm-lat-row':         { source: 'peto',  start: 92,   match: 'variant', label: 'Seated Band Row' },
-  'seated-face-pull':           { source: 'peto',  start: 141,  match: 'exact',   label: 'Seated Face Pull (band around feet)' },
-  'bar-band-face-pull':         { source: 'peto',  start: 141,  match: 'close',   label: 'Face Pull (seated, foot anchor)' },
-  'reverse-fly-band':           { source: 'peto',  start: 301,  match: 'close',   label: 'Band Pull-Apart' },
 
   // --- Push ---
   'chest-pushup-banded':        { source: 'thenx', start: 239,  match: 'exact',   label: 'Level 1 Push-Ups (band resisted)' },
-  'chest-fly-middle':           { source: 'fml',   start: 46,   match: 'exact',   label: 'Chest Flys (mid anchor)' },
-  'incline-chest-press':        { source: 'fml',   start: 85,   match: 'variant', label: 'Incline Chest Flys (low anchor)' },
-  'overhead-shoulder-press':    { source: 'fml',   start: 273,  match: 'exact',   label: 'Shoulder Press' },
-  'lateral-deltoid-raise':      { source: 'fml',   start: 297,  match: 'exact',   label: 'Side Lateral Raise' },
-  'front-raise-band':           { source: 'fml',   start: 325,  match: 'exact',   label: 'Front Raises' },
-  'tricep-pushdown-band':       { source: 'fml',   start: 160,  match: 'exact',   label: 'Triceps Push Down (high anchor)' },
-  'bar-band-tricep-pushdown':   { source: 'fml',   start: 160,  match: 'close',   label: 'Triceps Push Down (door anchor shown)' },
-  'overhead-tricep-extension':  { source: 'peto',  start: 582,  match: 'exact',   label: 'Overhead Tricep Extension' },
 
   // --- Arms ---
-  'standing-bicep-curl':        { source: 'fml',   start: 203,  match: 'exact',   label: 'Biceps Curls' },
-  'tube-concentration-curl':    { source: 'fml',   start: 241,  match: 'variant', label: 'Preacher Curls' },
-  'hammer-curl-band':           { source: 'peto',  start: 471,  match: 'variant', label: 'Single-Arm Bicep Curl (supinated)' },
 
   // --- Legs / hinge ---
-  'band-thruster':              { source: 'peto',  start: 34,   match: 'exact',   label: 'Thrusters (front-rack squat to press)' },
-  'banded-squat-front':         { source: 'fml',   start: 413,  match: 'close',   label: 'Squats & Lunges' },
   'chris-heria-deadlift':       { source: 'thenx', start: 260,  match: 'exact',   label: 'Deadlift (resistance band)' },
-  'romanian-deadlift-band':     { source: 'peto',  start: 197,  match: 'close',   label: 'Band Deadlift / Hip Hinge' },
   'banded-lunges':              { source: 'thenx', start: 390,  match: 'exact',   label: 'Reverse Lunges (resistance band)' },
-  'lateral-band-walk':          { source: 'peto',  start: 409,  match: 'close',   label: 'X-Band Lateral Walk' },
-  'tube-calf-raise':            { source: 'thenx', start: 371,  match: 'variant', label: 'Seated Calf Raise (band)' },
-  'band-good-morning':          { source: 'rowan', start: 300,  match: 'variant', label: 'Bodyweight Good Mornings (warm-up)' },
-  'standing-glute-kickback':    { source: 'rowan', start: 555,  match: 'variant', label: 'Glute Kickbacks (bodyweight)' },
 
   // --- Bodyweight (Rowan Row) ---
-  'bodyweight-pushup-standard':     { source: 'rowan', start: 877,  match: 'close',   label: '5 Push-Ups into Downward Dog' },
-  'bodyweight-pushup-downward-dog': { source: 'rowan', start: 877,  match: 'exact',   label: 'Push-Ups into Downward Dog' },
-  'bodyweight-superman-pulses':     { source: 'rowan', start: 995,  match: 'exact',   label: 'Supermans' },
-  'bodyweight-plank-shoulder-taps': { source: 'rowan', start: 1118, match: 'exact',   label: 'Plank Shoulder Taps' },
-  'bodyweight-pike-pushup':         { source: 'rowan', start: 1178, match: 'exact',   label: 'Pike Push-Ups' },
-  'bodyweight-diamond-pushup':      { source: 'rowan', start: 1233, match: 'exact',   label: 'Diamond Push-Ups' },
-  'bodyweight-sumo-squat-pulse':    { source: 'rowan', start: 371,  match: 'close',   label: 'Sumo Squat' },
-  'bodyweight-reverse-lunge':       { source: 'rowan', start: 444,  match: 'exact',   label: 'Reverse Lunges' },
-  'bodyweight-air-squat':           { source: 'rowan', start: 502,  match: 'variant', label: 'Squat Pulses' },
-  'bodyweight-v-ups':               { source: 'rowan', start: 1378, match: 'exact',   label: 'V-Ups' },
-  'bodyweight-bicycle-crunches':    { source: 'rowan', start: 1500, match: 'exact',   label: 'Bicycle Kicks' },
-  'bodyweight-mountain-climbers':   { source: 'rowan', start: 2077, match: 'close',   label: 'Mountain Climbers' },
-  'bodyweight-jump-squats':         { source: 'rowan', start: 2139, match: 'exact',   label: 'Jump Squats' },
-  'bodyweight-full-burpees':        { source: 'rowan', start: 2250, match: 'exact',   label: 'Burpees' },
 
   // --- Added exercises ---
   'band-single-leg-rdl':            { source: 'thenx', start: 271,  match: 'exact',   label: 'Single-Leg Romanian Deadlift (band)' },
-  'bodyweight-side-lunge':          { source: 'rowan', start: 621,  match: 'exact',   label: 'Side Lunges' },
-  'band-upright-row':               { source: 'peto',  start: 253,  match: 'exact',   label: 'Upright Row' },
-  'band-pull-apart':                { source: 'peto',  start: 301,  match: 'exact',   label: 'Band Pull-Apart' },
-  'band-overhead-squat':            { source: 'peto',  start: 361,  match: 'exact',   label: 'Overhead Squat' },
   'bar-band-assisted-dip':          { source: 'thenx', start: 218,  match: 'exact',   label: 'Straight Bar Dips (band assistance)' },
-  'band-tricep-kickback':           { source: 'fml',   start: 181,  match: 'exact',   label: 'Triceps Kickback (low anchor)' },
-  'bodyweight-leg-scissors':        { source: 'rowan', start: 1740, match: 'exact',   label: 'Leg Scissors' },
-  'bodyweight-long-arm-crunch':     { source: 'rowan', start: 1443, match: 'exact',   label: 'Long-Arm Crunches' },
-  'bodyweight-side-plank-rotation': { source: 'rowan', start: 1297, match: 'exact',   label: 'Side Plank Rotation' },
-  'bodyweight-plank-crunch':        { source: 'rowan', start: 2026, match: 'exact',   label: 'Plank Crunches' },
   'bar-band-planche-lean':          { source: 'thenx', start: 437,  match: 'exact',   label: 'Assisted Planche Leans' },
   'bar-band-front-lever-raise':     { source: 'thenx', start: 460,  match: 'exact',   label: 'Assisted Front Lever Raises' },
-  'bodyweight-single-leg-calf-raise': { source: 'thenx', start: 371, match: 'variant', label: 'Seated Calf Raise (band)' },
 
   // Single-exercise tutorials (start at 0)
   'bar-pullup-strict': { source: 'tut_bar_pullup_strict', start: 0, match: 'exact', label: 'The Perfect Pull Up - Do it right!' },
   'bar-dead-hang': { source: 'tut_bar_dead_hang', start: 0, match: 'exact', label: 'How To Dead Hang The Right Way' },
   'chest-press-standing': { source: 'tut_chest_press_standing', start: 0, match: 'exact', label: 'How To: Standing Resistance Band Chest Press' },
-  'banded-archer-pushup': { source: 'tut_banded_archer_pushup', start: 0, match: 'close', label: 'Archer Push-Up (bodyweight shown)' },
+  'banded-archer-pushup': { source: 'tut_banded_archer_pushup', start: 0, match: 'exact', label: 'Archer Push-Up (add the band across your back)' },
   'glute-bridge-loop': { source: 'tut_glute_bridge_loop', start: 0, match: 'exact', label: 'The Banded Glute Bridge' },
   'band-woodchopper-high-low': { source: 'tut_band_woodchopper_high_low', start: 0, match: 'exact', label: 'High to Low Wood Chops with Resistance Bands' },
   'pallof-press-anti-rotation': { source: 'tut_pallof_press_anti_rotation', start: 0, match: 'exact', label: 'How to do a Standing Banded Pallof Press' },
@@ -177,6 +169,59 @@ export const EXERCISE_VIDEO_CUES: Record<string, ExerciseVideoCue> = {
   'bar-negative-pullup': { source: 'tut_bar_negative_pullup', start: 0, match: 'exact', label: 'How To Do a Negative Pull-Up' },
   'bodyweight-incline-pushup': { source: 'tut_bodyweight_incline_pushup', start: 0, match: 'exact', label: 'How To Do An Incline Push Up' },
   'bodyweight-knee-pushup': { source: 'tut_bodyweight_knee_pushup', start: 0, match: 'exact', label: 'The Knee Push Up' },
+  // Exact single-exercise clips (replace estimated compilation timestamps).
+  'bar-chinup-assisted': { source: 'tut_bar_chinup_assisted', start: 4, match: 'exact', label: 'How To: Resistance Band Assisted Chin Up' },
+  'bar-hanging-leg-raise': { source: 'tut_bar_hanging_leg_raise', start: 4, match: 'exact', label: 'How To Do Hanging Knee Raises' },
+  'bar-band-lat-pulldown': { source: 'tut_bar_band_lat_pulldown', start: 0, match: 'exact', label: 'How To Do Resistance Band Lat Pull Down' },
+  'bar-band-face-pull': { source: 'tut_bar_band_face_pull', start: 0, match: 'exact', label: 'How To Do Face Pull With Resistance Band' },
+  'bar-band-tricep-pushdown': { source: 'tut_bar_band_tricep_pushdown', start: 0, match: 'exact', label: 'Resistance Band Tricep Pushdown' },
+  'chest-fly-middle': { source: 'tut_chest_fly_middle', start: 0, match: 'exact', label: 'Standing Chest Fly Using Resistance Bands' },
+  'incline-chest-press': { source: 'tut_incline_chest_press', start: 0, match: 'exact', label: 'How To Do Incline Chest Press With Resistance Band' },
+  'bent-over-row-feet': { source: 'tut_bent_over_row_feet', start: 4, match: 'exact', label: 'How To Do A Resistance Band Bent Over Row' },
+  'single-arm-lat-row': { source: 'tut_single_arm_lat_row', start: 0, match: 'exact', label: 'Stagger-Stance Single-Arm Banded Row' },
+  'seated-face-pull': { source: 'tut_seated_face_pull', start: 0, match: 'exact', label: 'Banded Face Pull with External Rotation' },
+  'overhead-shoulder-press': { source: 'tut_overhead_shoulder_press', start: 0, match: 'exact', label: 'How To Do Shoulder Press With Resistance Band' },
+  'lateral-deltoid-raise': { source: 'tut_lateral_deltoid_raise', start: 4, match: 'exact', label: 'How To: Resistance Band Lateral Raise' },
+  'front-raise-band': { source: 'tut_front_raise_band', start: 0, match: 'exact', label: 'How to do resistance band front raises' },
+  'standing-bicep-curl': { source: 'tut_standing_bicep_curl', start: 0, match: 'exact', label: 'How to do Bicep curls with resistance bands' },
+  'hammer-curl-band': { source: 'tut_hammer_curl_band', start: 0, match: 'exact', label: 'Biceps: Resistance Band Hammer Curl' },
+  'tube-concentration-curl': { source: 'tut_tube_concentration_curl', start: 0, match: 'exact', label: 'Resistance Band Concentration Curl' },
+  'overhead-tricep-extension': { source: 'tut_overhead_tricep_extension', start: 0, match: 'exact', label: 'How to Do Overhead Tricep Extensions with Resistance Bands' },
+  'tricep-pushdown-band': { source: 'tut_tricep_pushdown_band', start: 0, match: 'exact', label: 'How To Do Triceps Pushdowns with Resistance Bands' },
+  'band-thruster': { source: 'tut_band_thruster', start: 0, match: 'exact', label: 'How to do a Thruster with resistance bands' },
+  'banded-squat-front': { source: 'tut_banded_squat_front', start: 0, match: 'exact', label: 'How to Do Front Squats with a Resistance Band' },
+  'romanian-deadlift-band': { source: 'tut_romanian_deadlift_band', start: 0, match: 'exact', label: 'Romanian Deadlift (RDL) (Resistance Band)' },
+  'band-good-morning': { source: 'tut_band_good_morning', start: 0, match: 'exact', label: 'Band Good Mornings' },
+  'lateral-band-walk': { source: 'tut_lateral_band_walk', start: 0, match: 'exact', label: 'Monster Walks: Gluteal Strengthening' },
+  'standing-glute-kickback': { source: 'tut_standing_glute_kickback', start: 0, match: 'exact', label: 'How To: Band Glute Kickback' },
+  'tube-calf-raise': { source: 'tut_tube_calf_raise', start: 0, match: 'exact', label: 'Resistance Band Standing Calf Raise' },
+  'reverse-fly-band': { source: 'tut_reverse_fly_band', start: 0, match: 'exact', label: 'How To Do Reverse Flys With Resistance Band' },
+  'behind-back-bicep-curl': { source: 'tut_behind_back_bicep_curl', start: 0, match: 'exact', label: 'Behind The Back Curls with Resistance Bands' },
+  'bodyweight-pushup-standard': { source: 'tut_bodyweight_pushup_standard', start: 0, match: 'exact', label: 'The Perfect Push Up | Do it right!' },
+  'bodyweight-diamond-pushup': { source: 'tut_bodyweight_diamond_pushup', start: 0, match: 'exact', label: 'How To: Diamond Push-Up' },
+  'bodyweight-pike-pushup': { source: 'tut_bodyweight_pike_pushup', start: 0, match: 'exact', label: 'How to do a Pike Push-Up' },
+  'bodyweight-pushup-downward-dog': { source: 'tut_bodyweight_pushup_downward_dog', start: 0, match: 'exact', label: 'Push-up to Down Dog' },
+  'bodyweight-superman-pulses': { source: 'tut_bodyweight_superman_pulses', start: 4, match: 'exact', label: 'How To Do A Superman with Pull' },
+  'bodyweight-air-squat': { source: 'tut_bodyweight_air_squat', start: 0, match: 'exact', label: 'Bodyweight Squat Tutorial - Proper Form and Technique' },
+  'bodyweight-sumo-squat-pulse': { source: 'tut_bodyweight_sumo_squat_pulse', start: 0, match: 'exact', label: 'Sumo Squat Pulse' },
+  'bodyweight-reverse-lunge': { source: 'tut_bodyweight_reverse_lunge', start: 0, match: 'exact', label: 'Alternating Reverse Lunge' },
+  'bodyweight-jump-squats': { source: 'tut_bodyweight_jump_squats', start: 0, match: 'exact', label: 'How To Jump Squat' },
+  'bodyweight-bicycle-crunches': { source: 'tut_bodyweight_bicycle_crunches', start: 0, match: 'exact', label: 'Strengthening the core: Bicycle Crunch' },
+  'bodyweight-v-ups': { source: 'tut_bodyweight_v_ups', start: 0, match: 'exact', label: 'How To Do V-Ups' },
+  'bodyweight-mountain-climbers': { source: 'tut_bodyweight_mountain_climbers', start: 4, match: 'exact', label: 'How To: Cross Body Mountain Climber' },
+  'bodyweight-plank-shoulder-taps': { source: 'tut_bodyweight_plank_shoulder_taps', start: 0, match: 'exact', label: 'How to do Shoulder Taps' },
+  'bodyweight-full-burpees': { source: 'tut_bodyweight_full_burpees', start: 0, match: 'exact', label: 'How To Burpee' },
+  'door-high-lat-pulldown': { source: 'tut_door_high_lat_pulldown', start: 0, match: 'exact', label: 'How To Do Lat Pull Down With Resistance Band' },
+  'bodyweight-single-leg-calf-raise': { source: 'tut_bodyweight_single_leg_calf_raise', start: 0, match: 'exact', label: 'Single-Leg Calf Raise' },
+  'bodyweight-side-lunge': { source: 'tut_bodyweight_side_lunge', start: 0, match: 'exact', label: 'Lateral Lunges' },
+  'band-upright-row': { source: 'tut_band_upright_row', start: 0, match: 'exact', label: 'Band Upright Row' },
+  'band-pull-apart': { source: 'tut_band_pull_apart', start: 0, match: 'exact', label: 'Band Pull Apart' },
+  'band-overhead-squat': { source: 'tut_band_overhead_squat', start: 0, match: 'exact', label: 'Resistance Band Overhead Squat' },
+  'band-tricep-kickback': { source: 'tut_band_tricep_kickback', start: 0, match: 'exact', label: 'How to do a Resistance Band Triceps Kickback' },
+  'bodyweight-leg-scissors': { source: 'tut_bodyweight_leg_scissors', start: 4, match: 'exact', label: 'How To Do A Scissor Kick' },
+  'bodyweight-long-arm-crunch': { source: 'tut_bodyweight_long_arm_crunch', start: 4, match: 'exact', label: 'How To: Long Arm Crunch' },
+  'bodyweight-side-plank-rotation': { source: 'tut_bodyweight_side_plank_rotation', start: 0, match: 'exact', label: 'Side Plank Thread the Needle' },
+  'bodyweight-plank-crunch': { source: 'tut_bodyweight_plank_crunch', start: 0, match: 'exact', label: 'Plank Knee to Elbow' },
 };
 
 /** Back-compat: id → timestamped URL (only verified cues). */

@@ -14,18 +14,21 @@ test('every video cue points at a real exercise and inside its video', () => {
   }
 });
 
-test('known verified timestamps', () => {
-  assert.equal(db.getExerciseYoutubeUrl('band-thruster'), 'https://youtu.be/sTueHjRCMaQ?t=34');
-  assert.equal(db.getExerciseTimestampLabel('bodyweight-full-burpees'), '37:30');
-  assert.equal(db.getExerciseTimestampLabel('chest-fly-middle'), '00:46');
+test('THENX cues sit on the video\'s own chapter markers', () => {
+  assert.equal(db.getExerciseYoutubeUrl('bar-pullup-assisted'), 'https://youtu.be/hQ2lHMP4kco?t=290');
+  assert.equal(db.getExerciseTimestampLabel('bar-band-front-lever-raise'), '07:40');
 });
 
-test('exercises without a clip fall back to a search, never a bare video', () => {
-  const url = db.getExerciseYoutubeUrl('behind-back-bicep-curl', 'Behind-the-Back Bicep Curl');
-  assert.match(url, /^https:\/\/www\.youtube\.com\/results\?search_query=/);
+test('every exercise has an exact clip: no estimated or near-miss timestamps', () => {
   for (const e of db.EXERCISE_DATABASE) {
-    assert.ok(/\?t=\d+$/.test(e.youtubeUrl) || e.youtubeUrl.includes('/results?'), `${e.id}: ${e.youtubeUrl}`);
+    const c = db.EXERCISE_VIDEO_CUES[e.id];
+    assert.ok(c, `${e.id} has no clip`);
+    assert.equal(c.match, 'exact', `${e.id} is only a ${c.match} match`);
+    assert.ok(c.source === 'thenx' || c.source.startsWith('tut_'), `${e.id} uses ${c.source}`);
+    assert.match(e.youtubeUrl, /\?t=\d+$/);
   }
+  const ids = Object.values(db.VIDEO_SOURCES).map(s => s.id);
+  assert.equal(new Set(ids).size, ids.length - 0, 'a video is listed twice');
 });
 
 test('ladders link both ways', () => {
@@ -36,8 +39,6 @@ test('ladders link both ways', () => {
   assert.equal(db.getExerciseById('bodyweight-pushup-standard').harderId, 'chest-pushup-banded');
 });
 
-test('tutorial clips start at the beginning and almost every exercise has a clip', () => {
+test('tutorial clips start at the beginning', () => {
   assert.equal(db.getExerciseYoutubeUrl('bar-pullup-strict'), 'https://youtu.be/eGo4IYlbE5g?t=0');
-  const without = db.EXERCISE_DATABASE.filter(e => !db.EXERCISE_VIDEO_CUES[e.id]);
-  assert.ok(without.length <= 1, `exercises without a clip: ${without.map(e => e.id).join(', ')}`);
 });
