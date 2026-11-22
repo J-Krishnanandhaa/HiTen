@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useBackClose } from '../../utils/backStack';
 import { Search, SlidersHorizontal, ArrowLeft, X, ExternalLink } from 'lucide-react';
 import { Exercise, UserProfile, WorkoutSessionLog } from '../../types';
 import {
@@ -147,6 +148,7 @@ export const ExerciseLibraryView: React.FC<Props> = ({ workoutLogs = [] }) => {
 export const ExerciseDetail: React.FC<{
   ex: Exercise; logs: WorkoutSessionLog[]; onOpen: (e: Exercise) => void; onClose: () => void;
 }> = ({ ex, logs, onOpen, onClose }) => {
+  useBackClose(true, onClose);
   const [playing, setPlaying] = useState(false);
   const cue = getExerciseVideoCue(ex.id);
   const source = cue ? VIDEO_SOURCES[cue.source] : undefined;

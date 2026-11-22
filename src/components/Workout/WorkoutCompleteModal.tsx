@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useBackClose } from '../../utils/backStack';
 import confetti from 'canvas-confetti';
 import { Trophy, Clock, Flame, Weight, ArrowRight } from 'lucide-react';
 import { WorkoutSessionLog } from '../../types';
@@ -15,6 +16,7 @@ export const WorkoutCompleteModal: React.FC<WorkoutCompleteModalProps> = ({
   onClose,
   unit = 'lbs',
 }) => {
+  useBackClose(true, onClose);
   useEffect(() => {
     confetti({
       particleCount: 80,

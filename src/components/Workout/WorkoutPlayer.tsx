@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useBackClose } from '../../utils/backStack';
 import { X, Volume2, VolumeX, Check, Plus, Minus, Shield, SkipForward, SkipBack, Flame, Repeat, Trophy, TrendingUp } from 'lucide-react';
 import { Routine, Exercise, LoggedExercise, LoggedSet, WorkoutSessionLog, UserProfile } from '../../types';
 import { EXERCISE_DATABASE, getExerciseById, getExerciseTimestampLabel } from '../../data/exerciseDatabase';
@@ -115,6 +116,10 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
   const [videoFor, setVideoFor] = useState<Exercise | null>(null);
   const [showSwap, setShowSwap] = useState(false);
   const [confirmQuit, setConfirmQuit] = useState(false);
+  // Back during a workout asks before ending it (never drops the session silently).
+  useBackClose(!confirmQuit, () => setConfirmQuit(true));
+  useBackClose(showTips, () => setShowTips(false));
+  useBackClose(showSwap, () => setShowSwap(false));
   const [prToast, setPrToast] = useState<string | null>(null);
   const [completedLog, setCompletedLog] = useState<WorkoutSessionLog | null>(null);
   const [restExtras, setRestExtras] = useState<Record<string, number>>(loadRestExtras);

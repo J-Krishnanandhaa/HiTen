@@ -1,4 +1,5 @@
 import React from 'react';
+import { useBackClose } from '../../utils/backStack';
 
 interface ConfirmSheetProps {
   open: boolean;
@@ -21,6 +22,7 @@ interface ConfirmSheetProps {
 export const ConfirmSheet: React.FC<ConfirmSheetProps> = ({
   open, title, message, confirmLabel, onConfirm, onCancel, destructive, secondaryLabel, onSecondary, cancelLabel = 'Cancel',
 }) => {
+  useBackClose(open, onCancel);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/60 p-3" role="dialog" aria-modal="true" aria-label={title}>

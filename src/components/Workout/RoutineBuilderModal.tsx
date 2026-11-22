@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBackClose } from '../../utils/backStack';
 import { X, Plus, Trash2, Check } from 'lucide-react';
 import { Routine, RoutineExercise, MuscleGroup } from '../../types';
 import { EXERCISE_DATABASE } from '../../data/exerciseDatabase';
@@ -14,6 +15,7 @@ export const RoutineBuilderModal: React.FC<RoutineBuilderModalProps> = ({
   onClose,
   existingRoutine,
 }) => {
+  useBackClose(true, onClose);
   const [name, setName] = useState(existingRoutine?.name || '');
   const [description, setDescription] = useState(existingRoutine?.description || '');
   const [level, setLevel] = useState<Routine['level']>(existingRoutine?.level || 'Intermediate');
