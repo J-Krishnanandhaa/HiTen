@@ -75,6 +75,8 @@ interface Spec {
   handles?: boolean;
   bandsOnTop?: boolean;
   dur?: number;
+  /** force the motion path onto one body part */
+  trailOn?: 'handN' | 'handF' | 'ankleN' | 'ankleF' | 'hip' | 'head';
   /** hide the motion path (multi-phase moves where one arrow would mislead) */
   noTrail?: boolean;
   /** Two-to-four word grip/position hint drawn on the stage when the pose alone can't show it. */
@@ -338,7 +340,7 @@ const buildMotion = (spec: Spec, ns: string): Motion => {
   }).sort((a, b) => b.len - a.len);
   let trail: string | undefined;
   const focus = new Set<BoneId>();
-  const best = scores[0];
+  const best = spec.trailOn ? scores.find((x) => x.e === spec.trailOn) : scores[0];
   if (!spec.noTrail && best && best.len > 8) {
     let pts = best.pts;
     if (spec.seq) {
@@ -539,9 +541,10 @@ const SPECS: Record<string, Spec> = {
   },
 
   'reverse-fly': {
-    view: 'front', ts: 0.62, neck: 12, knee: FRONT_KNEES, bandsOnTop: true, dur: 2.4,
-    rest: { hip: P(140, 152), torso: -90, leg: P(131, 229), legF: P(149, 229), foot: 90, arm: [84, 80], armF: [96, 100] },
-    peak: { hip: P(140, 152), torso: -90, leg: P(131, 229), legF: P(149, 229), foot: 90, arm: [183, 176], armF: [-3, 4] },
+    /* front view, tall stance: straight arms open from in front of the chest out to a T */
+    view: 'front', knee: FRONT_KNEES, elbow: [1, -1], bandsOnTop: true, anchors: [], dur: 2.4,
+    rest: { ...FS, arm: P(131, 106), armF: P(149, 106), hand: 0, handF: 180 },
+    peak: { ...FS, arm: P(72, 100), armF: P(208, 100), hand: 180, handF: 0 },
     bands: [{ a: { j: 'handN' }, b: { j: 'handF' }, natural: 34 }],
     glows: [{ b: 'uaN', t: 0.15, r: 12 }, { b: 'uaF', t: 0.15, r: 12 }, { b: 'ch', t: 0.6, r: 14 }],
   },
@@ -616,10 +619,11 @@ Object.assign(SPECS, {
   },
 
   'single-arm-row': {
-    view: 'side', handles: true, anchors: [P(256, 112)], dur: 2.4,
-    rest: { hip: P(100, 162), torso: -55, chest: -50, head: -45, leg: P(132, 236), legF: P(88, 236), foot: 0, arm: [12, 8], armF: [80, 70] },
-    peak: { hip: P(100, 162), torso: -55, chest: -50, head: -45, leg: P(132, 236), legF: P(88, 236), foot: 0, arm: [165, 108], armF: [80, 70] },
-    bands: [{ a: P(250, 112), b: { j: 'handN' }, natural: 60 }],
+    /* staggered stance facing a mid-height anchor: front knee bent, back leg long, row the elbow past the ribs */
+    view: 'side', handles: true, anchors: [P(256, 128)], dur: 2.4,
+    rest: { hip: P(122, 170), torso: -48, chest: -44, head: -38, leg: P(162, 236), legF: P(64, 236), foot: 0, footF: 20, arm: [6, 6], armF: [70, 64] },
+    peak: { hip: P(118, 170), torso: -54, chest: -52, head: -42, leg: P(162, 236), legF: P(64, 236), foot: 0, footF: 20, arm: [156, 14], armF: [70, 64] },
+    bands: [{ a: P(250, 128), b: { j: 'handN' }, natural: 60 }],
     glows: [{ b: 'ch', t: 0.55, r: 17, dy: -7 }, { b: 'uaN', t: 0.5, r: 11, dy: 3 }],
   },
 
@@ -643,10 +647,11 @@ Object.assign(SPECS, {
   'reverse-curl': { ...curlSpec(-40, 14, [{ b: 'faN', t: 0.35, r: 13, dy: -3 }, { b: 'uaN', t: 0.55, r: 10, dy: -3 }]), cue: 'Palms down' },
 
   'concentration-curl': {
+    /* half-kneeling: back knee down, front foot planted, elbow braced on the inside of the front knee */
     view: 'side', handles: true, dur: 2.6,
-    rest: { hip: P(140, 192), torso: -55, chest: -50, head: -45, ...KNEEL, arm: [95, 92] },
-    peak: { hip: P(140, 192), torso: -55, chest: -50, head: -45, ...KNEEL, arm: [95, -40], wrist: -8 },
-    bands: [{ a: P(124, 241), b: { j: 'handN' }, natural: 60, floorA: true }],
+    rest: { hip: P(124, 192), torso: -52, chest: -48, head: -40, leg: P(182, 236), legF: [94, 180], foot: 0, footF: 180, arm: [92, 92] },
+    peak: { hip: P(124, 192), torso: -52, chest: -48, head: -40, leg: P(182, 236), legF: [94, 180], foot: 0, footF: 180, arm: [92, -62], wrist: -8 },
+    bands: [FLOOR_BAND('footN', 50)],
     glows: [{ b: 'uaN', t: 0.55, r: 13, dy: -3 }, { b: 'faN', t: 0.3, r: 9 }],
   },
 
@@ -1046,12 +1051,24 @@ Object.assign(SPECS, {
 
   /* tuck front lever: from a dead hang, hips rise until the back is level */
   'front-lever-raise': {
-    view: 'side', elbow: [-1, -1], bar: 'side', barX: 144, dur: 3.2,
+    /* tuck front lever: arms stay straight, body rotates back until the back is level, knees tucked to the chest */
+    view: 'side', elbow: [-1, -1], bar: 'side', barX: 144, trailOn: 'hip', dur: 3.2,
     rest: { hip: P(140, 146), torso: -90, head: -90, arm: P(144, 36), armF: P(146, 36), hand: -90, leg: [90, 90], foot: 30 },
-    peak: { hip: P(177, 86), torso: -180, head: -186, arm: P(144, 36), armF: P(146, 36), hand: -90, leg: [158, 22], foot: 22 },
+    peak: { hip: P(177, 86), torso: -180, head: -192, arm: P(144, 36), armF: P(146, 36), hand: -90, leg: [212, 10], foot: -20 },
     bands: [{ a: P(150, 36), b: { j: 'hip' }, natural: 100 }],
     glows: [{ b: 'ch', t: 0.4, r: 16, dy: -6 }, { b: 'tor', t: 0.5, r: 14 }, { b: 'uaN', t: 0.3, r: 11 }],
   },
+
+  /* forearm plank hold: elbows under shoulders, one straight line heel to head; a slow brace pulse */
+  'forearm-plank': (() => {
+    const A = P(70, 231);
+    const pose = (a: number, head: number): Pose => ({ hip: along(A, a, TH + SH), torso: a, head, leg: A, foot: 75, arm: P(238, 236), hand: 0 });
+    return {
+      view: 'side', elbow: [-1, -1], cue: 'Hold', noTrail: true, dur: 3.6,
+      rest: pose(-9.7, -14), peak: pose(-10.6, -16),
+      glows: [{ b: 'tor', t: 0.5, r: 16, dy: 6 }, { b: 'ch', t: 0.3, r: 14, dy: 6 }, { b: 'thN', t: 0.2, r: 12 }],
+    } as Spec;
+  })(),
 
   /* slow plank knee drive: one knee pulls all the way to the chest, hips stay level */
   'plank-knee-crunch': {

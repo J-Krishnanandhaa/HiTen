@@ -269,5 +269,5 @@ export type ExtraAvatarAnimationType =
   | 'bulgarian-split-squat' | 'step-up' | 'side-lunge' | 'pistol-assisted' | 'upright-row' | 'pull-apart'
   | 'overhead-squat' | 'bar-dip' | 'bench-dip' | 'tricep-kickback' | 'doorframe-row' | 'table-row'
   | 'negative-pullup' | 'incline-pushup' | 'knee-pushup' | 'planche-lean' | 'front-lever-raise'
-  | 'leg-scissors' | 'long-arm-crunch' | 'side-plank-rotation' | 'plank-knee-crunch'
+  | 'leg-scissors' | 'long-arm-crunch' | 'side-plank-rotation' | 'plank-knee-crunch' | 'forearm-plank'
   | 'chinup-strict' | 'archer-pushup-bodyweight' | 'pushup-standard' | 'air-squat' | 'reverse-lunge-bodyweight' | 'calf-raise-bodyweight' | 'glute-bridge-bodyweight';

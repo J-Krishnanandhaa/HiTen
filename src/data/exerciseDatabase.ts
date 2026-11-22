@@ -110,6 +110,7 @@ export const VIDEO_SOURCES = {
   tut_bodyweight_long_arm_crunch: { id: '29lmlWvqXTE', title: 'How To: Long Arm Crunch', channel: 'Live Lean TV Daily Exercises', lengthSec: 64 },
   tut_bodyweight_side_plank_rotation: { id: 'yaiF53lSVHI', title: 'Side Plank Thread the Needle', channel: 'Andy Vincent', lengthSec: 30 },
   tut_bodyweight_plank_crunch: { id: 'I_syux99Bug', title: 'Plank Knee to Elbow', channel: 'I am Workoutic', lengthSec: 40 },
+  tut_bodyweight_plank: { id: 'mwlp75MS6Rg', title: 'How to do a Plank | Proper Form & Technique', channel: 'NASM', lengthSec: 14 },
 } as const;
 
 export type VideoSourceKey = keyof typeof VIDEO_SOURCES;
@@ -222,6 +223,7 @@ export const EXERCISE_VIDEO_CUES: Record<string, ExerciseVideoCue> = {
   'bodyweight-long-arm-crunch': { source: 'tut_bodyweight_long_arm_crunch', start: 4, match: 'exact', label: 'How To: Long Arm Crunch' },
   'bodyweight-side-plank-rotation': { source: 'tut_bodyweight_side_plank_rotation', start: 0, match: 'exact', label: 'Side Plank Thread the Needle' },
   'bodyweight-plank-crunch': { source: 'tut_bodyweight_plank_crunch', start: 0, match: 'exact', label: 'Plank Knee to Elbow' },
+  'bodyweight-plank': { source: 'tut_bodyweight_plank', start: 0, match: 'exact', label: 'How to do a Plank | Proper Form & Technique' },
 };
 
 /** Back-compat: id → timestamped URL (only verified cues). */

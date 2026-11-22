@@ -503,6 +503,25 @@ export const EXTRA_EXERCISES: Exercise[] = [
     estimatedCaloriesPerMin: 4.0,
   },
   {
+    id: 'bodyweight-plank',
+    name: 'Forearm Plank',
+    targetMuscle: 'Core',
+    secondaryMuscles: ['Shoulders', 'Glutes'],
+    bandType: 'None',
+    anchorPosition: 'None',
+    difficulty: 'Beginner',
+    avatarAnimation: 'forearm-plank',
+    instructions: [
+      'Forearms on the floor, elbows under shoulders, legs straight behind you on your toes.',
+      'Squeeze glutes and brace your stomach so your body is one straight line.',
+      'Hold for the target time, breathing steadily.',
+    ],
+    formCues: ['Ribs down, glutes tight.', 'Push the floor away with your forearms.'],
+    commonMistakes: ['Hips sagging toward the floor', 'Hips piked high', 'Holding the breath'],
+    tips: 'The foundation for every other plank and push-up variation.',
+    estimatedCaloriesPerMin: 4.0,
+  },
+  {
     id: 'bodyweight-side-plank-rotation',
     name: 'Side Plank Rotation',
     targetMuscle: 'Core',
@@ -607,7 +626,7 @@ export const COMMON_MISTAKES: Record<string, string[]> = {
 };
 
 /** Exercises whose target is held for seconds. */
-export const TIMED_EXERCISES = new Set(['bar-dead-hang']);
+export const TIMED_EXERCISES = new Set(['bar-dead-hang', 'bodyweight-plank']);
 
 /** Exercises where the band takes load off (lighter band = progress). */
 export const ASSISTED_EXERCISES = new Set(['bar-pullup-assisted', 'bar-chinup-assisted']);

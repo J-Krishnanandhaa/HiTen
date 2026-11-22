@@ -8,7 +8,8 @@ import type { LeapRoutine } from './prebuiltWorkouts';
  * 2. Plank shoulder taps (in 23 routines) replaced outside core days by a move
  *    for the day's actual target, cutting excess shoulder/core volume.
  * 3. No-equipment pull days get real horizontal pulling.
- * 4. New routines for the 5-day split (Upper, Lower) and the 6-day split
+ * 4. Every core day opens with a plain forearm plank.
+ * 5. New routines for the 5-day split (Upper, Lower) and the 6-day split
  *    (Push B, Pull B, Legs B), so each split is what its label says.
  */
 
@@ -54,6 +55,11 @@ function fixBase(r: LeapRoutine): LeapRoutine {
     exercises = exercises.map(e =>
       e.exerciseId === 'bodyweight-glute-bridge' ? { ...e, exerciseId: 'bodyweight-slider-leg-curl', targetReps: Math.min(e.targetReps, 12) } : e
     );
+  }
+
+  if (cat === 'Core' && !exercises.some(e => e.exerciseId === 'bodyweight-plank')) {
+    // Core days opened with no plain plank: add the hold as the first exercise.
+    exercises.unshift({ exerciseId: 'bodyweight-plank', sets: 3, targetReps: r.tier === 1 ? 30 : r.tier === 3 ? 60 : 45, targetRestSeconds: 30, notes: 'Hold: glutes tight, ribs down' });
   }
 
   if ((cat === 'Legs' || cat === 'Full Body Flow') && !exercises.some(e => CALF_IDS.has(e.exerciseId))) {
