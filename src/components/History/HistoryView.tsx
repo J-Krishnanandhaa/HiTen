@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useBackClose } from '../../utils/backStack';
+import { ConfirmSheet } from '../Common/ConfirmSheet';
 import { 
   Clock, Flame, Trophy, Calendar, ChevronDown, 
   ChevronUp, Scale, Activity, Plus, ChevronLeft, 
-  ChevronRight, Dumbbell, ArrowRight, TrendingUp
+  ChevronRight, Dumbbell, ArrowRight, TrendingUp, Trash2
 } from 'lucide-react';
 import { WorkoutSessionLog, UserProfile } from '../../types';
 import { EXERCISE_DATABASE } from '../../data/exerciseDatabase';
-import { getTodayDateString } from '../../utils/storage';
+import { getTodayDateString, toLocalDateString, deleteWorkoutLog } from '../../utils/storage';
 import { toDisplay } from '../../utils/bands';
 import { ProgressPanel } from './ProgressPanel';
 import { calculateWeeklyCalorieBurn } from '../../utils/nutritionMath';
@@ -17,6 +18,7 @@ interface HistoryViewProps {
   userProfile: UserProfile;
   onUpdateWeight?: (newWeightKg: number) => void;
   onNavigateToTraining?: () => void;
+  onDeleteWorkoutLog?: (logId: string) => void;
 }
 
 export const HistoryView: React.FC<HistoryViewProps> = ({
@@ -24,12 +26,15 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   userProfile,
   onUpdateWeight,
   onNavigateToTraining,
+  onDeleteWorkoutLog,
 }) => {
   const todayStr = getTodayDateString();
   const [activeSubTab, setActiveSubTab] = useState<'calendar' | 'summary'>('calendar');
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+  const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
   const [showWeightModal, setShowWeightModal] = useState(false);
   useBackClose(showWeightModal, () => setShowWeightModal(false));
+  useBackClose(!!deletingLogId, () => setDeletingLogId(null));
   const [inputWeight, setInputWeight] = useState(userProfile.weightKg);
 
   // Calendar State: Defaults to current month and today's date
@@ -100,8 +105,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   const firstDayOfWeek = (rawFirstDay + 6) % 7; // 0 = Mon, 6 = Sun
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
-  // Selected Day Details calculation
-  const selectedDayWorkouts = workoutLogs.filter(log => log.date.startsWith(selectedDate));
+  // Selected Day Details calculation (matching local date)
+  const selectedDayWorkouts = workoutLogs.filter(log => toLocalDateString(log.date) === selectedDate);
 
   // Formatted date string for selected inspector header
   const parsedDate = new Date(selectedDate + 'T00:00:00');
@@ -298,8 +303,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 const dayCol = (firstDayOfWeek + idx) % 7;
                 const isWeekend = dayCol === 5 || dayCol === 6; // Sat (5) or Sun (6)
 
-                // Check workouts for this day
-                const dayWorkouts = workoutLogs.filter(log => log.date.startsWith(dateKey));
+                // Check workouts for this day (matching local date)
+                const dayWorkouts = workoutLogs.filter(log => toLocalDateString(log.date) === dateKey);
                 const hasWorkout = dayWorkouts.length > 0;
                 const dayCals = dayWorkouts.reduce((sum, l) => sum + (l.caloriesBurned || 0), 0);
 
@@ -405,14 +410,28 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                             </h5>
                           </div>
 
-                          <div className="text-right">
-                            <div className="text-sm font-heading font-black text-hy-orange flex items-center justify-end gap-1">
-                              <Flame className="w-3.5 h-3.5 fill-hy-orange" />
-                              <span>{workout.caloriesBurned} kcal</span>
+                          <div className="flex items-center gap-2">
+                            <div className="text-right">
+                              <div className="text-sm font-heading font-black text-hy-orange flex items-center justify-end gap-1">
+                                <Flame className="w-3.5 h-3.5 fill-hy-orange" />
+                                <span>{workout.caloriesBurned} kcal</span>
+                              </div>
+                              <div className="text-xs text-hy-text-2 font-mono">
+                                {mins}m {secs}s
+                              </div>
                             </div>
-                            <div className="text-xs text-hy-text-2 font-mono">
-                              {mins}m {secs}s
-                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeletingLogId(workout.id);
+                              }}
+                              className="p-1.5 rounded-lg text-hy-text-3 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                              title="Delete this workout log"
+                              aria-label="Delete workout"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
 
@@ -564,8 +583,22 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                         </div>
                       </div>
 
-                      <div className="w-8 h-8 rounded-full bg-hy-bg-2 border border-hy-elevated flex items-center justify-center text-hy-text-2 shrink-0">
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingLogId(log.id);
+                          }}
+                          className="p-1.5 rounded-lg text-hy-text-3 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                          title="Delete this workout log"
+                          aria-label="Delete workout"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <div className="w-8 h-8 rounded-full bg-hy-bg-2 border border-hy-elevated flex items-center justify-center text-hy-text-2">
+                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </div>
                       </div>
                     </div>
 
@@ -677,6 +710,27 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* CONFIRM DELETE LOG SHEET */}
+      <ConfirmSheet
+        open={!!deletingLogId}
+        title="Delete workout log?"
+        message="This workout session will be permanently removed from your history and weekly stats."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => {
+          if (deletingLogId) {
+            if (onDeleteWorkoutLog) {
+              onDeleteWorkoutLog(deletingLogId);
+            } else {
+              deleteWorkoutLog(deletingLogId);
+            }
+            setDeletingLogId(null);
+          }
+        }}
+        cancelLabel="Cancel"
+        onCancel={() => setDeletingLogId(null)}
+      />
 
     </div>
   );

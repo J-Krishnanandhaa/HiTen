@@ -3,7 +3,7 @@ import { useBackClose } from './utils/backStack';
 import {
   loadUserProfile, saveUserProfile,
   loadRoutines, saveRoutines,
-  loadWorkoutLogs, migrateStorage,
+  loadWorkoutLogs, deleteWorkoutLog, migrateStorage,
 } from './utils/storage';
 import { computeWeeklyStreak } from './utils/streak';
 import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
@@ -100,6 +100,10 @@ export const App: React.FC = () => {
               });
             }}
             onNavigateToTraining={() => setActiveTab('training')}
+            onDeleteWorkoutLog={(logId) => {
+              deleteWorkoutLog(logId);
+              setWorkoutLogs(loadWorkoutLogs());
+            }}
           />
         )}
 

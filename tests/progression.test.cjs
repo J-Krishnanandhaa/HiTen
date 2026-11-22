@@ -31,6 +31,12 @@ test('top of range but easy (3+ in the tank): still step up only when near failu
   assert.notEqual(s.kind, 'step-up');
 });
 
+test('top of range but unrated (no RIR selected): does not step up', () => {
+  const prev = { date: '2026-11-20', sets: [set(16, ['slovic-loop-red'])] };
+  const s = p.suggestNext({ ...base, previous: prev });
+  assert.notEqual(s.kind, 'step-up');
+});
+
 test('assisted moves step down to a lighter band', () => {
   const prev = { date: '2026-11-20', sets: [set(16, ['slovic-loop-blue'], 1)] };
   const s = p.suggestNext({ ...base, isAssisted: true, previous: prev });

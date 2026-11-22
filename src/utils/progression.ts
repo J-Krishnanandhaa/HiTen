@@ -127,7 +127,8 @@ export function suggestNext(input: SuggestInput): Suggestion {
   const minDone = Math.min(...amounts);
   const bestDone = Math.max(...amounts);
   const rated = sets.filter(s => s.rir !== undefined);
-  const nearFailure = rated.length ? rated.every(s => (s.rir as number) <= 2) : true;
+  // Only suggest stepping up if the user explicitly rated sets near failure (<= 2 reps in reserve)
+  const nearFailure = rated.length ? rated.every(s => (s.rir as number) <= 2) : false;
 
   if (minDone >= range.high && nearFailure) {
     if (usesBand && lastBands.length) {

@@ -118,7 +118,8 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
   const [showSwap, setShowSwap] = useState(false);
   const [confirmQuit, setConfirmQuit] = useState(false);
   // Back during a workout asks before ending it (never drops the session silently).
-  useBackClose(!confirmQuit, () => setConfirmQuit(true));
+  useBackClose(!confirmQuit && phase !== 'done', () => setConfirmQuit(true));
+  useBackClose(phase === 'done', () => finishAndSave());
   useBackClose(showTips, () => setShowTips(false));
   useBackClose(showSwap, () => setShowSwap(false));
   const [prToast, setPrToast] = useState<string | null>(null);
@@ -138,6 +139,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
   const [amrapRounds, setAmrapRounds] = useState(0);
   const [finisherDone, setFinisherDone] = useState<{ f: Finisher; rounds: number } | null>(null);
   const finalLogsRef = useRef<LoggedExercise[] | null>(null);
+  const savedLogIdRef = useRef<string | null>(null);
 
   const [sessionLogs, setSessionLogs] = useState<LoggedExercise[]>(() =>
     routine.exercises.map(re => ({
@@ -327,7 +329,12 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
   };
 
   const endFinisher = () => {
-    if (finisher) setFinisherDone({ f: finisher, rounds: finisher.kind === 'amrap' ? amrapRounds : finisher.minutes });
+    if (finisher) {
+      const total = finisher.minutes * 60;
+      const elapsed = Math.max(1, Math.min(total, total - secondsLeft));
+      const rounds = finisher.kind === 'amrap' ? amrapRounds : Math.min(finisher.minutes, Math.ceil(elapsed / 60));
+      setFinisherDone({ f: finisher, rounds });
+    }
     sound.speak('Finisher done.');
     setPhase('done');
     setPhaseEndsAt(null);
@@ -360,7 +367,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
         }
       });
     }
-    finish([...base, ...extra], false);
+    finish([...base, ...extra], false, true);
   };
 
   const togglePause = () => {
@@ -392,19 +399,22 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
     setSelectedBands(prev => (prev.includes(bandId) ? (prev.length === 1 ? prev : prev.filter(id => id !== bandId)) : [...prev, bandId]));
   };
 
-  const finish = (logs: LoggedExercise[], partial: boolean) => {
+  const finish = (logs: LoggedExercise[], partial: boolean, showModal: boolean = true) => {
     // Nothing done: leave without saving an empty workout.
     if (!logs.some(l => l.sets.some(s => s.completed))) {
-      onExit();
+      if (showModal) onExit();
       return;
     }
-    sound.playWorkoutComplete();
+    if (showModal) sound.playWorkoutComplete();
     const durationSeconds = Math.max(60, elapsedSeconds);
     const doneLogs = partial
       ? logs.map(l => ({ ...l, sets: l.sets.filter(s => s.completed) })).filter(l => l.sets.length)
       : logs;
+    const logId = savedLogIdRef.current || ('log-' + Date.now());
+    savedLogIdRef.current = logId;
+
     const log: WorkoutSessionLog = {
-      id: 'log-' + Date.now(),
+      id: logId,
       routineId: routine.id,
       routineName: routine.name,
       date: new Date().toISOString(),
@@ -418,7 +428,9 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
       notes: finisherDone ? `Finisher: ${finisherDone.f.title}${finisherDone.f.kind === 'amrap' ? ` · ${finisherDone.rounds} rounds` : ''}` : undefined,
     };
     saveWorkoutLog(log);
-    setCompletedLog(log);
+    if (showModal) {
+      setCompletedLog(log);
+    }
   };
 
   const handleCompleteSet = () => {
@@ -459,6 +471,8 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
       sound.speak('All sets done.');
       setPhase('done');
       setPhaseEndsAt(null);
+      // Auto-save immediately upon completion of the last set!
+      finish(updated, false, false);
       return;
     }
 
@@ -543,7 +557,18 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ routine, userProfi
       {/* Header */}
       <div className="sticky top-0 z-30 bg-hy-surface border-b border-hy-elevated px-3 py-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <button type="button" onClick={() => setConfirmQuit(true)} aria-label="End workout" className="w-11 h-11 shrink-0 rounded-xl bg-hy-elevated text-hy-text-2 flex items-center justify-center">
+          <button 
+            type="button" 
+            onClick={() => {
+              if (phase === 'done') {
+                finishAndSave();
+              } else {
+                setConfirmQuit(true);
+              }
+            }} 
+            aria-label="End workout" 
+            className="w-11 h-11 shrink-0 rounded-xl bg-hy-elevated text-hy-text-2 flex items-center justify-center"
+          >
             <X className="w-5 h-5" />
           </button>
           <div className="min-w-0">

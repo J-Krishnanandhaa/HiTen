@@ -143,7 +143,7 @@ export const EXERCISE_SUBSTITUTIONS: Record<
   },
   'bar-chinup-assisted': {
     bandOnly: 'standing-bicep-curl',
-    bodyweightOnly: 'bodyweight-diamond-pushup',
+    bodyweightOnly: 'bodyweight-table-row',
     barOnly: 'bar-pullup-strict',
   },
   'bar-pullup-strict': {
@@ -214,15 +214,15 @@ export const EXERCISE_SUBSTITUTIONS: Record<
     barOnly: 'bodyweight-pike-pushup',
   },
   'standing-bicep-curl': {
-    bodyweightOnly: 'bodyweight-diamond-pushup',
+    bodyweightOnly: 'bodyweight-doorframe-row',
     barOnly: 'bar-pullup-strict',
   },
   'hammer-curl-band': {
-    bodyweightOnly: 'bodyweight-diamond-pushup',
+    bodyweightOnly: 'bodyweight-doorframe-row',
     barOnly: 'bar-pullup-strict',
   },
   'tube-concentration-curl': {
-    bodyweightOnly: 'bodyweight-diamond-pushup',
+    bodyweightOnly: 'bodyweight-doorframe-row',
     barOnly: 'bar-pullup-strict',
   },
   'overhead-tricep-extension': {
